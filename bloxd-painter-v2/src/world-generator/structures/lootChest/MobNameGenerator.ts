@@ -1,6 +1,6 @@
-import { ItemAttributes } from "@/core/types.js";
+import type { ItemAttributes } from "../../core/types.js";
 import { mobNamePrefixDistribution } from "../../utils/randomValues.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
 
 export class MobNameGenerator {
   mobType: string;

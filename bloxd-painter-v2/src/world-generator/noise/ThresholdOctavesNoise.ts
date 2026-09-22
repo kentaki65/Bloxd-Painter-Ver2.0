@@ -1,5 +1,5 @@
-import { OUT_OF_RUNGE_NUMBER } from "@/core/constants.js";
-import { Octave } from "@/core/types.js";
+import { OUT_OF_RUNGE_NUMBER } from "../core/constants.js";
+import type { Octave } from "../core/types.js";
 import SimplexNoise from "simplex-noise";
 
 type Threshold = {

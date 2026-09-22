@@ -1,10 +1,10 @@
-import { _TypeOf } from "@/core/index.js";
-import { FrequenciesItems, LootItem } from "@/core/types.js";
-import { getEnchantmentGenerator } from "@/enchantment/EnchantmentGenerator.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { Probability } from "@/random/Probability.js";
-import { RandomIntRange } from "@/random/RandomIntRange.js";
-import { WeightedDistribution } from "@/random/WeightedDistribution.js";
+import type { _TypeOf } from "../../core/index.js";
+import type { FrequenciesItems, LootItem } from "../../core/types.js";
+import { getEnchantmentGenerator } from "../../enchantment/EnchantmentGenerator.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
+import { Probability } from "../../random/Probability.js";
+import { RandomIntRange } from "../../random/RandomIntRange.js";
+import { WeightedDistribution } from "../../random/WeightedDistribution.js";
 
 export class LootChestGenerator {
   itemCategoryDistributions: LootItem[];

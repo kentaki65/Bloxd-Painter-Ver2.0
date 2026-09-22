@@ -1,4 +1,4 @@
-import { TTLCacheOption } from "@/core/types.js";
+import type { TTLCacheOption } from "../../core/types.js";
 import { TTLCache } from "@isaacs/ttlcache";
 import { PartitionTTLCache } from "./PartitionTTLCache.js";
 

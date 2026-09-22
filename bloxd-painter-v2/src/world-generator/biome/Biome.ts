@@ -1,14 +1,14 @@
-import { BiomeRegion, CaveLayer, FeatureHeight, TreeType } from "@/core/constants.js";
-import { BiomeConstructorOptions, BlockMetadata, Prefab, PrefabFrequency, Seed } from "@/core/types.js";
-import { WeightedDistribution } from "@/random/WeightedDistribution.js";
-import { FloraGenerator } from "@/structures/flora/FloraGenerator.js";
-import { OreGenerator } from "@/structures/ore/oreGenerator.js";
+import { BiomeRegion, CaveLayer, FeatureHeight, TreeType } from "../core/constants.js";
+import type { BiomeConstructorOptions, BlockMetadata, Prefab, PrefabFrequency, Seed } from "../core/types.js";
+import { WeightedDistribution } from "../random/WeightedDistribution.js";
+import { FloraGenerator } from "../structures/flora/FloraGenerator.js";
+import { OreGenerator } from "../structures/ore/oreGenerator.js";
 import { createPrefabFrequencySettings } from "./biomeUtils.js";
-import { dungeonPrefabFrequencies } from "@/structures/prefab/prefabDatas/prefabFrequencies.js";
-import { prefabDefinitions } from "@/structures/prefab/prefabDatas/prefabDefinitions.js";
-import { SimpleOctavesNoise } from "@/noise/SimpleOctaveNoise.js";
-import { WorldGenerator } from "@/generator/WorldGenerator.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
+import { dungeonPrefabFrequencies } from "../structures/prefab/prefabDatas/prefabFrequencies.js";
+import { prefabDefinitions } from "../structures/prefab/prefabDatas/prefabDefinitions.js";
+import { SimpleOctavesNoise } from "../noise/SimpleOctaveNoise.js";
+import { WorldGenerator } from "../generator/WorldGenerator.js";
+import { SeededRandom } from "../noise/SeededRandom.js";
 
 interface PrefabFrequencyParams {
   prefabFrequencies: PrefabFrequency[];

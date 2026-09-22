@@ -1,7 +1,7 @@
-import { Vec3Object } from "@/core/types.js";
+import type { Vec3Object } from "../core/types.js";
 import { RLEChunkContainer } from "./RLEChunkContainer.js";
-import { Sparse3DMap } from "@/data/array/Sparse3DMap.js";
-import { isNullOrUndefined } from "@/utils/utils.js";
+import { Sparse3DMap } from "../data/array/Sparse3DMap.js";
+import { isNullOrUndefined } from "../utils/utils.js";
 
 export function buildSchematic(
   name: string,

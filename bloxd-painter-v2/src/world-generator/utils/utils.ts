@@ -1,4 +1,4 @@
-import { BlockId, BlockMetadata, BlockName } from "@/core/types.js";
+import type { BlockId, BlockMetadata, BlockName } from "../core/types.js";
 
 export function isNullOrUndefined<T>(
   value: T | null | undefined

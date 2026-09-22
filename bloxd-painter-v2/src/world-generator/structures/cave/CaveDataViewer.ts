@@ -1,9 +1,9 @@
 //numCaveTypesについて縛れるかもしれん
 
-import { CaveField } from "@/core/constants.js";
-import { BlockId, NumCaveTypes } from "@/core/types.js";
-import { CaveTypeBlockId } from "./CaveMetadataManager.js";
-import { ChunkDataCache4D } from "@/data/cache/ChunkDataCache4D.js";
+import { CaveField } from "../../core/constants.js";
+import type { NumCaveTypes } from "../../core/types.js";
+import type { CaveTypeBlockId } from "./CaveMetadataManager.js";
+import { ChunkDataCache4D } from "../../data/cache/ChunkDataCache4D.js";
 
 class CaveDataViewBase {
   numCaveTypes: NumCaveTypes;

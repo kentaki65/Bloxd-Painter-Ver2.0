@@ -1,7 +1,6 @@
-import { ChunkSize } from "@/core/constants.js";
-import { ClusterSettingsResult, Vec2 } from "@/core/types.js";
-import { SimpleOctavesNoise } from "@/noise/SimpleOctaveNoise.js";
-import { ThresholdOctaveNoise } from "@/noise/ThresholdOctavesNoise.js";
+import { ChunkSize } from "../core/constants.js";
+import type { ClusterSettingsResult, Vec2 } from "../core/types.js";
+import { SimpleOctavesNoise } from "../noise/SimpleOctaveNoise.js";
 
 interface ClosestPointOnSegmentResult {
   alongCoord: number;

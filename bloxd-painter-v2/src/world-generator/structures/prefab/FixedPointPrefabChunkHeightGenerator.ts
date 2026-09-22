@@ -1,5 +1,5 @@
-import { FixedPrefabField } from "@/core/constants.js";
-import { FixedPointPrefabInfo } from "@/core/types.js";
+import { FixedPrefabField } from "../../core/constants.js";
+import type { FixedPointPrefabInfo } from "../../core/types.js";
 
 const vI = 12
 

@@ -1,8 +1,8 @@
-import { SimpleOctavesNoise } from "@/noise/SimpleOctaveNoise.js";
+import { SimpleOctavesNoise } from "../../noise/SimpleOctaveNoise.js";
 import { Biome } from "../Biome.js";
-import { getTotalAmplitude } from "@/utils/mathHelper.js";
-import { BiomeConstructorOptions, BlockMetadata, Seed } from "@/core/types.js";
-import { WorldGenerator } from "@/generator/WorldGenerator.js";
+import { getTotalAmplitude } from "../../utils/mathHelper.js";
+import type { BiomeConstructorOptions, BlockMetadata, Seed } from "../../core/types.js";
+import { WorldGenerator } from "../../generator/WorldGenerator.js";
 
 export class SnowyMountains extends Biome {
   private ridgedNoiseOctave1: SimpleOctavesNoise;

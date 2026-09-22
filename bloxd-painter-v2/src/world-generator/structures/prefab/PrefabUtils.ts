@@ -1,4 +1,4 @@
-import { PrefabPlacement } from "@/core/types.js";
+import type { PrefabPlacement } from "../../core/types.js";
 
 //gE
 export function worldToPrefabX(

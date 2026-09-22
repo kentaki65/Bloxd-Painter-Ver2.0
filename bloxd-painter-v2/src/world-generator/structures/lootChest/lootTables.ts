@@ -1,6 +1,6 @@
-import { MaterialTier, Rarity } from "@/core/constants.js";
+import { MaterialTier, Rarity } from "../../core/constants.js";
 import { normalizeFrequencies } from "./NormalizeFrequencies.js";
-import { FrequenciesItems } from "@/core/types.js";
+import type { FrequenciesItems } from "../../core/types.js";
 import { LootChestGenerator } from "./LootChestGenerator.js";
 import { MobNameGenerator } from "./MobNameGenerator.js";
 

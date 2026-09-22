@@ -1,9 +1,9 @@
-import { FeatureHeight } from "@/core/constants.js";
-import { BiomeConstructorOptions, BlockMetadata, Seed } from "@/core/types.js";
+import { FeatureHeight } from "../../core/constants.js";
+import type { BiomeConstructorOptions, BlockMetadata, Seed } from "../../core/types.js";
 import { Plains } from "./Plains.js";
 import { createPrefabFrequencySettings } from "../biomeUtils.js";
-import { mapleTreePrefabFrequencies } from "@/structures/prefab/prefabDatas/prefabFrequencies.js";
-import { WorldGenerator } from "@/generator/WorldGenerator.js";
+import { mapleTreePrefabFrequencies } from "../../structures/prefab/prefabDatas/prefabFrequencies.js";
+import { WorldGenerator } from "../../generator/WorldGenerator.js";
 
 export class SnowyPlains extends Plains {
   constructor(

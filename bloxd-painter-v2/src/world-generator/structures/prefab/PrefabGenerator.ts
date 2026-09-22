@@ -1,24 +1,24 @@
-import { BlockPlacementMode, CaveMobs, ChunkSize, HeightField, OUT_OF_RUNGE_NUMBER, Rarity } from "@/core/constants.js";
-import { BlockId, CaveInterval, CaveMobNames, GeneratedPrefabPlacement, Prefab, PrefabCenter, PrefabConfig, PrefabInstance, PrefabPlacement, Seed, Vec2 } from "@/core/types.js";
-import { Sparse3DMap } from "@/data/array/Sparse3DMap.js";
-import { EE, EnchantmentGenerator, initializeEnchantmentGenerator } from "@/enchantment/EnchantmentGenerator.js";
-import { PointsGenerator } from "@/generator/PointsGenerator.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { BidirectionalMap } from "@/utils/BidirectionalMap.js";
-import { BlockIdMappingManager } from "@/utils/BlockIdMapping.js";
-import { mirrorDistribution, rotationDistribution } from "@/utils/randomValues.js";
+import { BlockPlacementMode, CaveMobs, ChunkSize, HeightField, OUT_OF_RUNGE_NUMBER, Rarity } from "../../core/constants.js";
+import type { BlockId, CaveInterval, CaveMobNames, GeneratedPrefabPlacement, Prefab, PrefabCenter, PrefabConfig, PrefabInstance, PrefabPlacement, Seed, Vec2 } from "../../core/types.js";
+import { Sparse3DMap } from "../../data/array/Sparse3DMap.js";
+import { initializeEnchantmentGenerator } from "../../enchantment/EnchantmentGenerator.js";
+import { PointsGenerator } from "../../generator/PointsGenerator.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
+import { BidirectionalMap } from "../../utils/BidirectionalMap.js";
+import { BlockIdMappingManager } from "../../utils/BlockIdMapping.js";
+import { mirrorDistribution, rotationDistribution } from "../../utils/randomValues.js";
 import { TTLCache } from "@isaacs/ttlcache";
 import ndarray from "ndarray";
 import { prefabToWorldX, prefabToWorldZ, worldToPrefabX, worldToPrefabZ } from "./PrefabUtils.js";
 import { CaveManager } from "../cave/CaveManager.js";
 import { FixedPointPrefabManager } from "./FixedPointPrefabManager.js";
 import { collectCaveIntervals } from "../cave/CaveUtils.js";
-import { isNullOrUndefined } from "@/utils/utils.js";
-import { divideByChunkSize } from "@/utils/mathHelper.js";
+import { isNullOrUndefined } from "../../utils/utils.js";
+import { divideByChunkSize } from "../../utils/mathHelper.js";
 import voxelCrunch from 'voxel-crunch';
 import { LootChestBlockGenerator } from "../lootChest/LootChestBlockGenerator.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
-import { ChunkGeneratorCache } from "@/data/cache/ChunkGeneratorCache.js";
+import { ChunkDataCache3D } from "../../data/cache/ChunkDataCache3D.js";
+import { ChunkGeneratorCache } from "../../data/cache/ChunkGeneratorCache.js";
 import { CaveDataView } from "../cave/CaveDataViewer.js";
 
 type PrefabCentrePointGenerators = Record<number, Record<number, PointsGenerator | null>>

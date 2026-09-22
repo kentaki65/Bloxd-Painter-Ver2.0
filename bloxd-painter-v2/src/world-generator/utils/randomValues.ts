@@ -1,4 +1,4 @@
-import { WeightedDistribution } from "@/random/WeightedDistribution.js";
+import { WeightedDistribution } from "../random/WeightedDistribution.js";
 
 export const rotationDistribution = new WeightedDistribution([
   { value: 0, weight: 1 },

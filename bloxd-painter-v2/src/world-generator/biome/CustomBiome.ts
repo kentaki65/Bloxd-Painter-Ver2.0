@@ -1,8 +1,8 @@
-import { BiomeConstructorOptions, BlockMetadata, BlockName, Seed } from "@/core/types.js";
+import type { BiomeConstructorOptions, BlockMetadata, BlockName, Seed } from "../core/types.js";
 import { Biome } from "./Biome.js";
-import { WorldGenerator } from "@/generator/WorldGenerator.js";
-import { getBlockId } from "@/utils/utils.js";
-import { SimpleOctavesNoise } from "@/noise/SimpleOctaveNoise.js";
+import { WorldGenerator } from "../generator/WorldGenerator.js";
+import { getBlockId } from "../utils/utils.js";
+import { SimpleOctavesNoise } from "../noise/SimpleOctaveNoise.js";
 
 export interface CustomBiomeDefinition {
   frequency: number;

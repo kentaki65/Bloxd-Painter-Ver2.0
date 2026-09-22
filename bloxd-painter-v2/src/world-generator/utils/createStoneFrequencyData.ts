@@ -1,4 +1,4 @@
-import { BlockId } from "@/core/types.js";
+import type { BlockId } from "../core/types.js";
 
 interface StoneType {
   stoneId: BlockId;

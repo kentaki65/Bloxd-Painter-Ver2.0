@@ -1,7 +1,7 @@
-import { BlockId, BlockMetadata, ChunkArray, Seed } from "@/core/types.js";
-import { PointsGenerator } from "@/generator/PointsGenerator.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { manhattanDistance } from "@/utils/mathHelper.js";
+import type { BlockId, BlockMetadata, ChunkArray, Seed } from "../../core/types.js";
+import { PointsGenerator } from "../../generator/PointsGenerator.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
+import { manhattanDistance } from "../../utils/mathHelper.js";
 
 type FlowerTypes = "Dandelion" | "Poppy" | "Red Tulip" | "Pink Tulip" | "White Tulip" | "Orange Tulip" | "Daisy" | "Allium" | "Shadow Rose" | "Bluebell" | "Fallen Maple Leaves" | "Fallen Cherry Leaves" | "Melon" | "Watermelon" | "Pumpkin" | "Rice|FreshlyGrown" | "Cranberries_stage2" | "Red Mushroom" | "Brown Mushroom" | "Fat Red Mushroom" | "Fat Brown Mushroom" | "Cotton_stage3" | "Chili Pepper Plant|FreshlyGrown" | "Chili Pepper Plant|Lava|FreshlyGrown" | "Forget-me-not" | "Fallen Pine Cone"
 

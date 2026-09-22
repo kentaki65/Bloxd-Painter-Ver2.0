@@ -1,7 +1,7 @@
-import { HeightField } from "@/core/constants.js";
+import { HeightField } from "../../core/constants.js";
 import { getCaveIntervals } from "./CaveUtils.js";
 import { CaveDataView } from "./CaveDataViewer.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
+import { ChunkDataCache3D } from "../../data/cache/ChunkDataCache3D.js";
 
 export class SurfaceLimitedCaveIntervalGenerator {
   caveHeightmapVals: CaveDataView;

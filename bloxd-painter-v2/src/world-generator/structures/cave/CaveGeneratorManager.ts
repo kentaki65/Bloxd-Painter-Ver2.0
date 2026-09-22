@@ -1,8 +1,8 @@
-import { ChunkSize } from "@/core/constants.js";
-import { ChunkArray4D } from "@/data/array/ChunkArray4D.js";
-import { Sparse4DArray } from "@/data/array/Sparse4DArray.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
-import { divideByChunkSize } from "@/utils/mathHelper.js";
+import { ChunkSize } from "../../core/constants.js";
+import { ChunkArray4D } from "../../data/array/ChunkArray4D.js";
+import { Sparse4DArray } from "../../data/array/Sparse4DArray.js";
+import { ChunkDataCache3D } from "../../data/cache/ChunkDataCache3D.js";
+import { divideByChunkSize } from "../../utils/mathHelper.js";
 import { CaveMetadataManager } from "./CaveMetadataManager.js";
 import { CaveGenerator } from "./CaveGenerator.js";
 

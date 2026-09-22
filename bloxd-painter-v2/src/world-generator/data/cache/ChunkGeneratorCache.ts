@@ -1,6 +1,8 @@
-import { Vec2 } from "@/core/types.js";
+import type { Vec2 } from "../../core/types.js";
 import { ChunkArray2DWithPadding } from "../array/ChunkArray2DWithPadding.js";
-import { BiomeSelector, BiomeGenerateResult } from "@/biome/BiomeSelector.js";
+import { BiomeSelector } from "../../biome/BiomeSelector.js";
+import type { BiomeGenerateResult } from "../../biome/BiomeSelector.js";
+
 
 export class ChunkGeneratorCache {
   innerContiguousArray: ChunkArray2DWithPadding;

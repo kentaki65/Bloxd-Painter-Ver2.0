@@ -1,9 +1,9 @@
-import { CaveField, HeightField, OUT_OF_RUNGE_NUMBER } from "@/core/constants.js";
-import { ChunkArray4D } from "@/data/array/ChunkArray4D.js";
-import { Sparse4DArray } from "@/data/array/Sparse4DArray.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
-import { getDistance, getDistanceToSegment } from "@/utils/mathHelper.js";
-import { PitCaveMetadataForChunk, RavineCaveMetadataForChunk, SpaghettiCaveMetadata, SphereCaveMetadataForChunk } from "./CaveMetadataManager.js";
+import { CaveField, HeightField, OUT_OF_RUNGE_NUMBER } from "../../core/constants.js";
+import { ChunkArray4D } from "../../data/array/ChunkArray4D.js";
+import { Sparse4DArray } from "../../data/array/Sparse4DArray.js";
+import { ChunkDataCache3D } from "../../data/cache/ChunkDataCache3D.js";
+import { getDistance, getDistanceToSegment } from "../../utils/mathHelper.js";
+import type { PitCaveMetadataForChunk, RavineCaveMetadataForChunk, SpaghettiCaveMetadata, SphereCaveMetadataForChunk } from "./CaveMetadataManager.js";
 
 type CaveMetadata = ChunkArray4D | Sparse4DArray;
 

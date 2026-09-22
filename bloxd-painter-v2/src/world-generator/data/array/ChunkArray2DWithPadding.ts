@@ -1,5 +1,5 @@
-import { BiomeGenerateResult } from "@/biome/BiomeSelector.js";
-import { Vec2 } from "@/core/types.js";
+import type { BiomeGenerateResult } from "../../biome/BiomeSelector.js";
+import type { Vec2 } from "../../core/types.js";
 import ndarray from "ndarray";
 
 export class ChunkArray2DWithPadding {

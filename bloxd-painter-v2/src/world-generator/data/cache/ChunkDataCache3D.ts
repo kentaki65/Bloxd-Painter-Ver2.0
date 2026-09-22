@@ -1,9 +1,8 @@
-import { emptyArray, HeightField } from "@/core/constants.js";
+import { emptyArray, HeightField } from "../../core/constants.js";
 import { CombinedArray3D } from "../array/CombinedArray3D.js";
 import { Sparse3DArray } from "../array/Sparse3DArray.js";
-import { Vec2 } from "@/core/types.js";
+import type { Vec2 } from "../../core/types.js";
 import { ChunkArray3D } from "../array/ChunkArray3D.js";
-import { FixedPointPrefabChunkHeightGenerator } from "@/structures/prefab/FixedPointPrefabChunkHeightGenerator.js";
 
 //型について修正欲しい
 //zH

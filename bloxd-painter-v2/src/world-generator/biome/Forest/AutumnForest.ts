@@ -1,9 +1,9 @@
-import { prefabGroupsFrequencies } from "@/structures/prefab/prefabDatas/prefabFrequencies.js";
+import { prefabGroupsFrequencies } from "../../structures/prefab/prefabDatas/prefabFrequencies.js";
 import { Forest } from "./Forest.js";
-import { BiomeRegion, FeatureHeight } from "@/core/constants.js";
+import { BiomeRegion, FeatureHeight } from "../../core/constants.js";
 import { createPrefabFrequencySettings } from "../biomeUtils.js";
-import { BiomeConstructorOptions, BlockMetadata, Seed } from "@/core/types.js";
-import { WorldGenerator } from "@/generator/WorldGenerator.js";
+import type { BiomeConstructorOptions, BlockMetadata, Seed } from "../../core/types.js";
+import { WorldGenerator } from "../../generator/WorldGenerator.js";
 
 export class AutumnForest extends Forest {
   constructor(

@@ -1,12 +1,12 @@
-import { MobNameGenerator } from "@/structures/lootChest/MobNameGenerator.js";
-import { RandomIntRange } from "@/random/RandomIntRange.js";
-import { WeightedDistribution } from "@/random/WeightedDistribution.js";
+import { MobNameGenerator } from "../structures/lootChest/MobNameGenerator.js";
+import { RandomIntRange } from "../random/RandomIntRange.js";
+import { WeightedDistribution } from "../random/WeightedDistribution.js";
 import { CaveMobs, Rarity, TreeType } from "./constants.js";
-import { prefabDefinitions } from "@/structures/prefab/prefabDatas/prefabDefinitions.js";
-import { OreGenerator } from "@/structures/ore/oreGenerator.js";
-import { Sparse3DMap } from "@/data/array/Sparse3DMap.js";
+import { prefabDefinitions } from "../structures/prefab/prefabDatas/prefabDefinitions.js";
+import { OreGenerator } from "../structures/ore/oreGenerator.js";
+import { Sparse3DMap } from "../data/array/Sparse3DMap.js";
 import { blockMetadata } from "./blockMetadata.js";
-import { _TypeOf } from "./index.js";
+import type { _TypeOf } from "./index.js";
 
 export type Seed = number | string;
 export type Vec3 = [number, number, number];

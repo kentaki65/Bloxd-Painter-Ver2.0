@@ -1,4 +1,4 @@
-import { SeededRandom } from "@/noise/SeededRandom.js";
+import { SeededRandom } from "../noise/SeededRandom.js";
 
 export class RandomRange {
   min: number;

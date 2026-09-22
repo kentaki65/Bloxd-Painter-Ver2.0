@@ -1,4 +1,4 @@
-import { Octave, Seed } from "@/core/types.js";
+import type { Octave, Seed } from "../core/types.js";
 import SimplexNoise from "simplex-noise";
 
 //WH

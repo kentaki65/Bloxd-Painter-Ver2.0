@@ -1,9 +1,9 @@
-import { ChunkSize, FixedPrefabField, HeightField } from "@/core/constants.js";
-import { FixedPointPrefabInfo, Schematic } from "@/core/types.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
-import { lobbySchematic } from "@/schematics/datas/lobbySchematic.js";
-import { divideByChunkSize } from "@/utils/mathHelper.js";
-import { isNullOrUndefined } from "@/utils/utils.js";
+import { ChunkSize, FixedPrefabField, HeightField } from "../../core/constants.js";
+import type { FixedPointPrefabInfo, Schematic } from "../../core/types.js";
+import { ChunkDataCache3D } from "../../data/cache/ChunkDataCache3D.js";
+import { lobbySchematic } from "../../schematics/datas/lobbySchematic.js";
+import { divideByChunkSize } from "../../utils/mathHelper.js";
+import { isNullOrUndefined } from "../../utils/utils.js";
 import { TTLCache } from "@isaacs/ttlcache";
 import ndarray from "ndarray";
 import voxelCrunch from 'voxel-crunch';

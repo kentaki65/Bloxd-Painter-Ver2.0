@@ -1,8 +1,8 @@
-import { Rarity } from "@/core/constants.js";
+import { Rarity } from "../../core/constants.js";
 import { lootChestGenerators } from "./lootTables.js";
 import { LootChestGenerator } from "./LootChestGenerator.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { Seed } from "@/core/types.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
+import type { Seed } from "../../core/types.js";
 
 export class LootChestBlockGenerator {
   lootChestBlockId: number;

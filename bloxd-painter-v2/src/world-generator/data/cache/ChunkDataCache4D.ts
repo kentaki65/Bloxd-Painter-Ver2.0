@@ -1,9 +1,9 @@
-import { Vec2 } from "@/core/types.js";
+import type { Vec2 } from "../../core/types.js";
 import { Sparse4DArray } from "../array/Sparse4DArray.js";
 import { ChunkArray4D } from "../array/ChunkArray4D.js";
-import { emptyArray, HeightField } from "@/core/constants.js";
+import { emptyArray, HeightField } from "../../core/constants.js";
 import { CombinedArray4D } from "../array/CombinedArray4D.js";
-import { CaveGeneratorManager } from "@/structures/cave/CaveGeneratorManager.js";
+import { CaveGeneratorManager } from "../../structures/cave/CaveGeneratorManager.js";
 
 //型修正必要
 export class ChunkDataCache4D {

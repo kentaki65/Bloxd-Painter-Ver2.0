@@ -1,5 +1,5 @@
-import { Biome } from "@/biome/Biome.js";
-import { SimpleOctavesNoise } from "@/noise/SimpleOctaveNoise.js";
+import { Biome } from "../biome/Biome.js";
+import { SimpleOctavesNoise } from "../noise/SimpleOctaveNoise.js";
 
 export class NoWaterHeightmap {
   globalHeightmap: SimpleOctavesNoise;

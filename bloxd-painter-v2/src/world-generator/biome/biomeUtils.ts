@@ -1,5 +1,5 @@
-import { PrefabFrequency, PrefabFrequencySettings } from "@/core/types.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
+import type { PrefabFrequency, PrefabFrequencySettings } from "../core/types.js";
+import { SeededRandom } from "../noise/SeededRandom.js";
 
 export function createPrefabFrequencySettings(
   density: number,

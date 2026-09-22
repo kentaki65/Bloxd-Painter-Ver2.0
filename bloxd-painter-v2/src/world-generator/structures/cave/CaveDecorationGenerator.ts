@@ -1,10 +1,10 @@
-import { BlockMetadata, ChunkArray, ClusterConfig, ClusterSettingsResult, Seed } from "@/core/types.js";
-import { PointsGenerator } from "@/generator/PointsGenerator.js";
+import type { BlockMetadata, ChunkArray, ClusterConfig, ClusterSettingsResult, Seed } from "../../core/types.js";
+import { PointsGenerator } from "../../generator/PointsGenerator.js";
 import { createClusterSettings, selectAvailableOffset } from "./CaveUtils.js";
 import { CaveDataProvider } from "./CaveDataProvider.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { interpolateClusterValue } from "@/utils/mathHelper.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
+import { interpolateClusterValue } from "../../utils/mathHelper.js";
+import { ChunkDataCache3D } from "../../data/cache/ChunkDataCache3D.js";
 import { CaveDataView } from "./CaveDataViewer.js";
 
 interface ClusterCell {

@@ -1,11 +1,11 @@
-import { CaveField, HeightField, OUT_OF_RUNGE_NUMBER } from "@/core/constants.js";
-import { BlockId, BlockMetadata, BlockName, ChunkArray, Seed, Vec2 } from "@/core/types.js";
+import { CaveField, HeightField, OUT_OF_RUNGE_NUMBER } from "../../core/constants.js";
+import type { BlockMetadata, BlockName, ChunkArray, Seed, Vec2 } from "../../core/types.js";
 import { CaveDataView, InnerChunkCaveDataView } from "./CaveDataViewer.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { ChunkDataCache4D } from "@/data/cache/ChunkDataCache4D.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
+import { ChunkDataCache4D } from "../../data/cache/ChunkDataCache4D.js";
 import { CaveGeneratorManager } from "./CaveGeneratorManager.js";
 import { CaveMetadataManager } from "./CaveMetadataManager.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
+import { ChunkDataCache3D } from "../../data/cache/ChunkDataCache3D.js";
 
 type CaveData = CaveDataView | InnerChunkCaveDataView;
 

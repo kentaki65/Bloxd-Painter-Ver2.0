@@ -1,4 +1,4 @@
-import { Vec2 } from "@/core/types.js";
+import type { Vec2 } from "../../core/types.js";
 import ndarray from "ndarray";
 
 export class ChunkArray3D {

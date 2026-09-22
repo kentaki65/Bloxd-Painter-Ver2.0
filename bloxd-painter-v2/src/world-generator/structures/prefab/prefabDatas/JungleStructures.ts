@@ -1,4 +1,4 @@
-import { buildSchematic } from "@/schematics/buildSchematic.js";
+import { buildSchematic } from "../../../schematics/buildSchematic.js";
 
 //te
 export const jungleStructures = {

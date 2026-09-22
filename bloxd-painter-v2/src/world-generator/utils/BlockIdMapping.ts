@@ -1,4 +1,4 @@
-import { BlockId, BlockMetadata, BlockName } from "@/core/types.js";
+import type { BlockId, BlockMetadata, BlockName } from "../core/types.js";
 
 const ROTATIONS = [0, 90, 180, 270];
 

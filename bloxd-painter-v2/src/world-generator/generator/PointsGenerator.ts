@@ -1,8 +1,8 @@
-import { ClosestPoints, Vec2 } from "@/core/types.js";
-import { PartitionedTTLCache } from "@/data/cache/PartitionedTTLCache.js";
-import { PartitionTTLCache } from "@/data/cache/PartitionTTLCache.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { getDistance } from "@/utils/mathHelper.js";
+import type { ClosestPoints, Vec2 } from "../core/types.js";
+import { PartitionedTTLCache } from "../data/cache/PartitionedTTLCache.js";
+import { PartitionTTLCache } from "../data/cache/PartitionTTLCache.js";
+import { SeededRandom } from "../noise/SeededRandom.js";
+import { getDistance } from "../utils/mathHelper.js";
 import PoissonDiskSampling from 'poisson-disk-sampling';
 
 interface PointsGeneratorCell {

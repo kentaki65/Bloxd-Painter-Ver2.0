@@ -1,5 +1,5 @@
-import { WeightedItem } from "@/core/types.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
+import type { WeightedItem } from "../core/types.js";
+import { SeededRandom } from "../noise/SeededRandom.js";
 
 interface DistributionItem<T> {
   cumulativeProbability: number;

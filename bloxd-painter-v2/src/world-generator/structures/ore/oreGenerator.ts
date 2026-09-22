@@ -1,9 +1,9 @@
-import { HeightField } from "@/core/constants.js";
-import { BlockId, BlockMetadata, BlockName, ChunkArray, Seed } from "@/core/types.js";
-import { PointsGenerator } from "@/generator/PointsGenerator.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { manhattanDistance } from "@/utils/mathHelper.js";
-import { getBlockId } from "@/utils/utils.js";
+import { HeightField } from "../../core/constants.js";
+import type { BlockId, BlockMetadata, BlockName, ChunkArray, Seed } from "../../core/types.js";
+import { PointsGenerator } from "../../generator/PointsGenerator.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
+import { manhattanDistance } from "../../utils/mathHelper.js";
+import { getBlockId } from "../../utils/utils.js";
 
 export interface OreConfig {
   blockName: BlockName;

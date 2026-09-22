@@ -1,5 +1,5 @@
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { generateRandomId } from "@/random/generateRandomId.js";
+import { SeededRandom } from "../noise/SeededRandom.js";
+import { generateRandomId } from "../random/generateRandomId.js";
 
 const MAX_ENCHANTMENT_COUNT = 3;
 

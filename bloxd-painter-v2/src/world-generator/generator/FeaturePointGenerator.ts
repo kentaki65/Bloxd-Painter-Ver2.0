@@ -1,5 +1,5 @@
-import { Vec2 } from "@/core/types.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
+import type { Vec2 } from "../core/types.js";
+import { SeededRandom } from "../noise/SeededRandom.js";
 import { PointsGenerator } from "./PointsGenerator.js";
 
 export class FeaturePointGenerator {

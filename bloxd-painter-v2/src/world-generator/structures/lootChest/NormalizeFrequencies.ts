@@ -1,4 +1,4 @@
-import { FrequenciesItems } from "@/core/types.js";
+import type { FrequenciesItems } from "../../core/types.js";
 
 export function normalizeFrequencies(
   items: FrequenciesItems[],

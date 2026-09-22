@@ -1,16 +1,16 @@
-import { CanopyType, TreeType, CanopyBlockPlacement, CanopyShape, CanopyLevel, HeightField, OUT_OF_RUNGE_NUMBER } from "@/core/constants.js";
-import { BlockId, BlockMetadata, ChunkArray, PrefabCenter, Seed, TreePlacement } from "@/core/types.js";
-import { ChunkArray2D } from "@/data/array/ChunkArray2D.js";
-import { PointsGenerator } from "@/generator/PointsGenerator.js";
+import { CanopyType, TreeType, CanopyBlockPlacement, CanopyShape, CanopyLevel, HeightField, OUT_OF_RUNGE_NUMBER } from "../../core/constants.js";
+import type { BlockId, BlockMetadata, ChunkArray, PrefabCenter, Seed, TreePlacement } from "../../core/types.js";
+import { ChunkArray2D } from "../../data/array/ChunkArray2D.js";
+import { PointsGenerator } from "../../generator/PointsGenerator.js";
 import { CaveManager } from "../cave/CaveManager.js";
 import { PrefabGenerator } from "../prefab/PrefabGenerator.js";
 import { FixedPointPrefabManager } from "../prefab/FixedPointPrefabManager.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { BiomeSelector } from "@/biome/BiomeSelector.js";
-import { ChunkGeneratorCache } from "@/data/cache/ChunkGeneratorCache.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
+import { BiomeSelector } from "../../biome/BiomeSelector.js";
+import { ChunkGeneratorCache } from "../../data/cache/ChunkGeneratorCache.js";
+import { ChunkDataCache3D } from "../../data/cache/ChunkDataCache3D.js";
 import { CaveDataView } from "../cave/CaveDataViewer.js";
-import { Biome } from "@/biome/Biome.js";
+import { Biome } from "../../biome/Biome.js";
 
 type GeneratorFn = (dx: number, dz: number) => CanopyBlockPlacement;
 

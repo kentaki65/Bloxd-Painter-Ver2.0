@@ -1,5 +1,5 @@
-import { Vec3, Vec3Object } from "@/core/types.js";
-import { Sparse3DMap } from "@/data/array/Sparse3DMap.js";
+import type { Vec3, Vec3Object } from "../core/types.js";
+import { Sparse3DMap } from "../data/array/Sparse3DMap.js";
 
 export class RLEChunkContainer {
   name: string;

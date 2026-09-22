@@ -1,18 +1,18 @@
-import { BlockId, Seed, Vec2, BlockName, BlockMetadata } from "@/core/types.js";
-import { PartitionedTTLCache } from "@/data/cache/PartitionedTTLCache.js";
-import { PartitionTTLCache } from "@/data/cache/PartitionTTLCache.js";
-import { FeaturePointGenerator } from "@/generator/FeaturePointGenerator.js";
-import { PointsGenerator } from "@/generator/PointsGenerator.js";
-import { SimpleOctavesNoise } from "@/noise/SimpleOctaveNoise.js";
-import { ThresholdOctaveNoise } from "@/noise/ThresholdOctavesNoise.js";
-import { RandomIntRange } from "@/random/RandomIntRange.js";
-import { RandomRange } from "@/random/RandomRange.js";
-import { WeightedDistribution } from "@/random/WeightedDistribution.js";
-import { getBlockId, isNullOrUndefined } from "@/utils/utils.js";
+import type { BlockId, Seed, Vec2, BlockName, BlockMetadata } from "../../core/types.js";
+import { PartitionedTTLCache } from "../../data/cache/PartitionedTTLCache.js";
+import { PartitionTTLCache } from "../../data/cache/PartitionTTLCache.js";
+import { FeaturePointGenerator } from "../../generator/FeaturePointGenerator.js";
+import { PointsGenerator } from "../../generator/PointsGenerator.js";
+import { SimpleOctavesNoise } from "../../noise/SimpleOctaveNoise.js";
+import { ThresholdOctaveNoise } from "../../noise/ThresholdOctavesNoise.js";
+import { RandomIntRange } from "../../random/RandomIntRange.js";
+import { RandomRange } from "../../random/RandomRange.js";
+import { WeightedDistribution } from "../../random/WeightedDistribution.js";
+import { getBlockId, isNullOrUndefined } from "../../utils/utils.js";
 import { CaveGenerator } from "./CaveGenerator.js";
-import { multiplyByChunkSize, normalizeVector2 } from "@/utils/mathHelper.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
+import { multiplyByChunkSize, normalizeVector2 } from "../../utils/mathHelper.js";
+import { SeededRandom } from "../../noise/SeededRandom.js";
+import { ChunkDataCache3D } from "../../data/cache/ChunkDataCache3D.js";
 
 type Range = {
   low: number;

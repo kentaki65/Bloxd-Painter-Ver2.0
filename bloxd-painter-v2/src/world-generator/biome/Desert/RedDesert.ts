@@ -1,6 +1,6 @@
-import { BiomeConstructorOptions, BlockMetadata, Seed } from "@/core/types.js";
+import type { BiomeConstructorOptions, BlockMetadata, Seed } from "../../core/types.js";
 import { Desert } from "./Desert.js";
-import { WorldGenerator } from "@/generator/WorldGenerator.js";
+import { WorldGenerator } from "../../generator/WorldGenerator.js";
 
 export class RedDesert extends Desert {
   constructor(

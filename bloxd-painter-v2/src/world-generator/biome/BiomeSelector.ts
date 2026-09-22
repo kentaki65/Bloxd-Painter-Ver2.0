@@ -1,13 +1,12 @@
-import { BlockId, BlockMetadata, Seed, Vec2 } from "@/core/types.js";
-import { OreGenerator } from "@/structures/ore/oreGenerator.js";
+import type { BlockId, BlockMetadata, Seed, Vec2 } from "../core/types.js";
 import { Biome } from "./Biome.js";
-import { PointsGenerator } from "@/generator/PointsGenerator.js";
-import { SimpleOctavesNoise } from "@/noise/SimpleOctaveNoise.js";
-import { SeededRandom } from "@/noise/SeededRandom.js";
-import { ChunkArray2D } from "@/data/array/ChunkArray2D.js";
+import { PointsGenerator } from "../generator/PointsGenerator.js";
+import { SimpleOctavesNoise } from "../noise/SimpleOctaveNoise.js";
+import { SeededRandom } from "../noise/SeededRandom.js";
+import { ChunkArray2D } from "../data/array/ChunkArray2D.js";
 import { selectWeightedIndex } from "./biomeUtils.js";
-import { WorldGenerator } from "@/generator/WorldGenerator.js";
-import { ChunkGeneratorCache } from "@/data/cache/ChunkGeneratorCache.js";
+import { WorldGenerator } from "../generator/WorldGenerator.js";
+import { ChunkGeneratorCache } from "../data/cache/ChunkGeneratorCache.js";
 
 interface MostRecentlyAccessedModifier {
   stoneTypeId: BlockId

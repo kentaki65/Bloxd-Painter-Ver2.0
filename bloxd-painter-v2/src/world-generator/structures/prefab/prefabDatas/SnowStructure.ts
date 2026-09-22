@@ -1,4 +1,4 @@
-import { buildSchematic } from "@/schematics/buildSchematic.js";
+import { buildSchematic } from "../../../schematics/buildSchematic.js";
 
 export const snowStructures = {
   ruinSnowLarge1: buildSchematic("ruinSnowLarge1", {

@@ -1,12 +1,12 @@
-import { SimpleOctavesNoise } from "@/noise/SimpleOctaveNoise.js";
+import { SimpleOctavesNoise } from "../noise/SimpleOctaveNoise.js";
 import { NoWaterHeightmap } from "./NoWaterHeightmap.js";
-import { WaterBodyGenerator } from "@/structures/water/WaterBodyGenerator.js";
-import { HeightField, OUT_OF_RUNGE_NUMBER } from "@/core/constants.js";
-import { FixedPointPrefabManager } from "@/structures/prefab/FixedPointPrefabManager.js";
-import { ChunkDataCache3D } from "@/data/cache/ChunkDataCache3D.js";
-import { ChunkGeneratorCache } from "@/data/cache/ChunkGeneratorCache.js";
-import { Sparse3DArray } from "@/data/array/Sparse3DArray.js";
-import { Biome } from "@/biome/Biome.js";
+import { WaterBodyGenerator } from "../structures/water/WaterBodyGenerator.js";
+import { HeightField, OUT_OF_RUNGE_NUMBER } from "../core/constants.js";
+import { FixedPointPrefabManager } from "../structures/prefab/FixedPointPrefabManager.js";
+import { ChunkDataCache3D } from "../data/cache/ChunkDataCache3D.js";
+import { ChunkGeneratorCache } from "../data/cache/ChunkGeneratorCache.js";
+import { Sparse3DArray } from "../data/array/Sparse3DArray.js";
+import { Biome } from "../biome/Biome.js";
 
 export class HeightmapGenerator {
   closestBiomesForChunk: ChunkGeneratorCache;

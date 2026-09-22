@@ -1,5 +1,5 @@
-import { CaveField, OUT_OF_RUNGE_NUMBER } from "@/core/constants.js";
-import { BlockMetadata, BlockName, CaveInterval, ClusterConfig, ClusterSettingsResult, Vec3 } from "@/core/types.js";
+import { CaveField, OUT_OF_RUNGE_NUMBER } from "../../core/constants.js";
+import type { BlockMetadata, BlockName, CaveInterval, ClusterConfig, ClusterSettingsResult, Vec3 } from "../../core/types.js";
 import { CaveDataProvider } from "./CaveDataProvider.js";
 import { CaveDataView } from "./CaveDataViewer.js";
 
