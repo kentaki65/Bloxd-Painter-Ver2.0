@@ -1,0 +1,18 @@
+body {
+  overflow: hidden;
+}
+
+#viewer3d {
+  width: 800px; 
+  height: 600px;
+}
+
+#map {
+  width: 320px;
+  height: 320px;
+}
+
+.viewers {
+  display: flex;
+  flex-direction: row;
+}
