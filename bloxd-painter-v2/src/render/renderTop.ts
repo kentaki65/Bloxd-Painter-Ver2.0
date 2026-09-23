@@ -12,7 +12,7 @@ export function renderTopDown(
 
   for (let dz = 0; dz < height; dz++) {
     for (let dx = 0; dx < width; dx++) {
-      const x = originX + dx;
+      const x = originX + (width - 1 - dx);;
       const z = originZ + dz;
       const top = world.findTopBlock(x, z);
       const color = top ? getColor(top.blockId) : "#000000";
