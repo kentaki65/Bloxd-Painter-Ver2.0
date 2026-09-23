@@ -13,7 +13,7 @@ export class VoxelChunk {
   }
 
   getLocal(lx: number, ly: number, lz: number): number {
-    return this.array.get(lx, ly, lz);
+    return this.array.get(lx, ly, lz);        
   }
 
   setLocal(lx: number, ly: number, lz: number, value: number): void {
@@ -22,8 +22,9 @@ export class VoxelChunk {
 
   isEmpty(): boolean {
     for (let i = 0; i < this.array.data.length; i++) {
-      //unloadedのid
-      if (this.array.data[i] !== 1) return false;
+      const value = this.array.data[i];
+      //airまたはunloaded
+      if (value === 0 || value === 1) return false;
     }
     return true;
   }

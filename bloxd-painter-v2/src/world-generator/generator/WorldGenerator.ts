@@ -1,6 +1,4 @@
 import voxelCrunch from 'voxel-crunch';
-import MD5 from "md5.js";
-
 import { BiomeSelector } from "../biome/BiomeSelector.js";
 import type { BlockMetadata, BlockName, ClusterConfig, GeneratedPrefabPlacement, Seed, TreePlacement, Vec2 } from "../core/types.js";
 import { PartitionedTTLCache } from "../data/cache/PartitionedTTLCache.js";
@@ -47,6 +45,8 @@ import type { CustomBiomeDefinition } from '../biome/CustomBiome.js';
 import { ChunkArray2D } from '../data/array/ChunkArray2D.js';
 import { CombinedArray3D } from '../data/array/CombinedArray3D.js';
 import { InnerChunkCaveDataView } from '../structures/cave/CaveDataViewer.js';
+import type { BiomeOverrideLayer } from '../../world/overrideLayers/BiomeOverrideLayer.js';
+import type { HeightOverrideLayer } from '../../world/overrideLayers/HeightOverrideLayer.js';
 
 interface ChunkColumInfo {
   biomeInfos: {
@@ -69,24 +69,6 @@ interface ChunkColumInfo {
     topRightZ: number;
   }[]
   caveDecorations: any;
-}
-
-interface GeneratorOptionsTemp {
-  /** 川・湖などの水域生成を有効にするか(デフォルト true) */
-  enableWaterGeneration?: boolean;          // 旧 OI
-
-  /** カスタムバイオーム定義。指定すると標準バイオーム構成を完全に置き換える */
-  biomeEntries?: CustomBiome[] | null;
-
-  /** 鉱石生成設定の上書き(未指定時は oreConfigs を使用) */
-  oreConfigOverrides?: OreConfig[];          // 旧 MI
-
-  cave?: {
-    /** 洞窟ピットの充填ブロック名(デフォルト "Lava") */
-    fillBlockName?: BlockName;               // 旧 WI.UI
-    /** 洞窟内装飾のクラスタ設定(未指定/nullでデフォルト設定を使用) */
-    decorationConfigs?: ClusterConfig[] | null; // 旧 WI.BI
-  };
 }
 
 interface GeneratorOptions {
@@ -120,6 +102,8 @@ export class WorldGenerator {
   mostRecentlyAccessedChunkColumn: any;
   chunkColumnInfos: PartitionTTLCache<ChunkColumInfo>;
   chunkGenerator: ChunkGenerator;
+  overrideLayer: BiomeOverrideLayer | null;
+  heightOverrideLayer: HeightOverrideLayer | null
 
   constructor(
     chunkSize: number,
@@ -130,6 +114,8 @@ export class WorldGenerator {
     fixedPointPrefabs: any,
     cacheSizeMultiplier: number,
     options: GeneratorOptions | null = null,
+    overrideLayer: BiomeOverrideLayer | null = null,
+    heightOverrideLayer: HeightOverrideLayer | null = null,
   ) {
     this.chunkSize = chunkSize;
     this.maxTreeRadius = 3;
@@ -138,6 +124,8 @@ export class WorldGenerator {
     this.needOutsideWaterDist = 15;
     this.mostRecentlyAccessedChunkColumnPos = [0, 0];
     this.mostRecentlyAccessedChunkColumn = null;
+    this.overrideLayer = overrideLayer;
+    this.heightOverrideLayer = heightOverrideLayer;
 
     if (!xR) {
       const HH = Math.floor((useBiggerCache ? 1750 : 125) * cacheSizeMultiplier);
@@ -348,7 +336,7 @@ export class WorldGenerator {
       }));
     }(biomeOptions);
 
-    this.biomeSelector = new BiomeSelector(this, oreGenerator, seed, chunkSize, blockMetadata, biomeEntries);
+    this.biomeSelector = new BiomeSelector(this, oreGenerator, seed, chunkSize, blockMetadata, biomeEntries, overrideLayer);
     this.treeGenerator = new TreeGenerator(this, this.biomeSelector, chunkSize, seed, blockMetadata);
     this.fixedPointPrefabTracker = new FixedPointPrefabManager(fixedPointPrefabs, chunkSize);
     this.prefabGenerator = new PrefabGenerator({
@@ -454,7 +442,7 @@ export class WorldGenerator {
       const hashInputJson = JSON.stringify(hashInput);
 
       return {
-        hash: new MD5().update(hashInputJson).digest("hex"),
+        hash: "hash",
         specialBlocks
       };
     } catch (error: any) {
@@ -578,7 +566,8 @@ export class WorldGenerator {
       nearestFixedPrefabInfoForChunk,
       this.noWaterHeightmapGenerator,
       this.heightmapPerturb,
-      this.waterBodyGenerator
+      this.waterBodyGenerator,
+      this.heightOverrideLayer
     );
 
     return ChunkDataCache3D.create(this.chunkSize, [chunkStartX, chunkStartZ], HeightField.NumFields, heightmapGenerator);

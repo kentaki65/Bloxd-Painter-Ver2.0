@@ -7,6 +7,7 @@ import { ChunkDataCache3D } from "../data/cache/ChunkDataCache3D.js";
 import { ChunkGeneratorCache } from "../data/cache/ChunkGeneratorCache.js";
 import { Sparse3DArray } from "../data/array/Sparse3DArray.js";
 import { Biome } from "../biome/Biome.js";
+import type { HeightOverrideLayer } from "../../world/overrideLayers/HeightOverrideLayer.js";
 
 export class HeightmapGenerator {
   closestBiomesForChunk: ChunkGeneratorCache;
@@ -14,19 +15,22 @@ export class HeightmapGenerator {
   noWaterHeightmapGenerator: NoWaterHeightmap;
   heightmapPerturb: SimpleOctavesNoise;
   waterBodyGenerator: WaterBodyGenerator;
+  heightOverrideLayer: HeightOverrideLayer | null;
 
   constructor(
     closestBiomesForChunk: ChunkGeneratorCache,
     nearestFixedPrefabInfoForChunk: ChunkDataCache3D,
     noWaterHeightmapGenerator: NoWaterHeightmap,
     heightmapPerturb: SimpleOctavesNoise,
-    waterBodyGenerator: WaterBodyGenerator
+    waterBodyGenerator: WaterBodyGenerator,
+    heightOverrideLayer: HeightOverrideLayer | null = null
   ) {
     this.closestBiomesForChunk = closestBiomesForChunk;
     this.nearestFixedPrefabInfoForChunk = nearestFixedPrefabInfoForChunk;
     this.noWaterHeightmapGenerator = noWaterHeightmapGenerator;
     this.heightmapPerturb = heightmapPerturb;
     this.waterBodyGenerator = waterBodyGenerator;
+    this.heightOverrideLayer = heightOverrideLayer;
   }
 
   generateAndSet(
@@ -34,6 +38,15 @@ export class HeightmapGenerator {
     chunkStartZ: number,
     heightmapVals: Sparse3DArray
   ) {
+    const heightOverride = this.heightOverrideLayer?.get(chunkStartX, chunkStartZ);
+
+    if (heightOverride !== undefined) {
+      heightmapVals.set(chunkStartX, chunkStartZ, HeightField.GroundHeight, heightOverride);
+      heightmapVals.set(chunkStartX, chunkStartZ, HeightField.WaterHeight, OUT_OF_RUNGE_NUMBER.NO_WATER_VALUE);
+      heightmapVals.set(chunkStartX, chunkStartZ, HeightField.CavesAllowedBelowY, heightOverride - 15);
+      return;
+    }
+    
     const biomeInfos = this.closestBiomesForChunk.getOrGenerate(
       chunkStartX,
       chunkStartZ

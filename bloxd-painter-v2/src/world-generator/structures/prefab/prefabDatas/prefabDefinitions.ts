@@ -4,7 +4,7 @@ import { treeStractures } from "./TreeStructures.js";
 import { WeightedDistribution } from "../../../random/WeightedDistribution.js";
 import { jungleStructures } from "./JungleStructures.js";
 import { dungeonStructures } from "./DungeonStructures.js";
-import { PrefabDefinition } from "../../../core/types.js";
+import type { PrefabDefinition } from "../../../core/types.js";
 
 export const prefabDefinitions: Record<string, PrefabDefinition> = {
   treeMapleLarge1: {

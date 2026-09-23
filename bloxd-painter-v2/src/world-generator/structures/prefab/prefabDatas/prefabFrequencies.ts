@@ -1,4 +1,4 @@
-import { PrefabFrequency } from "../../../core/types.js";
+import type { PrefabFrequency } from "../../../core/types.js";
 
 export const ruinStonePrefabFrequencies: PrefabFrequency[] = [{
   prefabName: "ruinStoneSmall1",

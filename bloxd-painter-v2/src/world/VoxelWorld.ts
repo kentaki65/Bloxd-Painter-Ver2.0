@@ -29,7 +29,9 @@ export class VoxelWorld {
 
   getBlock(x: number, y: number, z: number): number {
     const chunk = this.getChunk(floorDiv(x, chunkSize), floorDiv(y, chunkSize), floorDiv(z, chunkSize));
-    if (chunk === undefined) return 2; //unloaded
+    if (chunk === undefined) {
+      return 1;
+    }
     return chunk.getLocal(mod(x, chunkSize), mod(y, chunkSize), mod(z, chunkSize));
   }
 
@@ -40,5 +42,13 @@ export class VoxelWorld {
 
   getChunkCount(): number {
     return this.chunks.size;
+  }
+
+  findTopBlock(x: number, z: number, maxY = 120, minY = -100): { y: number; blockId: number } | null {
+    for (let y = maxY; y >= minY; y--) {
+      const b = this.getBlock(x, y, z);
+      if (b !== 0) return { y, blockId: b }; // 0 = Air
+    }
+    return null;
   }
 }

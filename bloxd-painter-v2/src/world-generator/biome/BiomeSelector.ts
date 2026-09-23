@@ -7,6 +7,7 @@ import { ChunkArray2D } from "../data/array/ChunkArray2D.js";
 import { selectWeightedIndex } from "./biomeUtils.js";
 import { WorldGenerator } from "../generator/WorldGenerator.js";
 import { ChunkGeneratorCache } from "../data/cache/ChunkGeneratorCache.js";
+import type { BiomeOverrideLayer } from "../../world/overrideLayers/BiomeOverrideLayer.js";
 
 interface MostRecentlyAccessedModifier {
   stoneTypeId: BlockId
@@ -51,6 +52,7 @@ export class BiomeSelector {
   } | undefined;
   mostRecentlyAccessedModifierPt: Vec2;
   mostRecentlyAccessedModifier: MostRecentlyAccessedModifier | undefined;
+  overrideLayer: BiomeOverrideLayer | null;
 
   constructor(
     worldGenerator: WorldGenerator,
@@ -58,7 +60,8 @@ export class BiomeSelector {
     seed: Seed,
     chunkSize: number,
     blockMetadata: BlockMetadata,
-    biomeEntries: BiomeEntry[]
+    biomeEntries: BiomeEntry[],
+    overrideLayer: BiomeOverrideLayer | null = null
   ) {
     this.mostRecentlyAccessedPtForBiome = [0, 0];
     this.mostRecentlyAccessedBiome = undefined;
@@ -68,6 +71,7 @@ export class BiomeSelector {
     this.seed = seed;
     this.blockMetadata = blockMetadata;
     this.chunkSize = chunkSize;
+    this.overrideLayer = overrideLayer;
 
     this.biomePointGen = new PointsGenerator("biome", 150, false, true, seed, 3, chunkSize);
     this.biomeOffsetSimplex = new SimpleOctavesNoise([
@@ -117,6 +121,17 @@ export class BiomeSelector {
     worldX: number,
     worldZ: number
   ): BiomeGenerateResult[] {
+    const overrideBiomeId = this.overrideLayer?.get(worldX, worldZ);
+    if (overrideBiomeId !== undefined) {
+      const biome = this.getBiomeFromId(overrideBiomeId);
+      return [{
+        weight: 1,
+        biome,
+        biomeId: overrideBiomeId,
+        biomeModifiers: this.getBiomeModifiersForBiomePoint([worldX, worldZ])
+      }];
+    }
+
     const offsetX = this.getBiomeXOffset(worldX, worldZ);
     const offsetZ = this.getBiomeZOffset(worldX, worldZ);
     const nearbyPoints = this.biomePointGen.getKClosestPointsWithWeights(worldX + offsetX, worldZ + offsetZ, 60);
@@ -147,6 +162,11 @@ export class BiomeSelector {
     worldX: number,
     worldZ: number
   ) {
+    const overrideBiomeId = this.overrideLayer?.get(worldX, worldZ);
+    if (overrideBiomeId !== undefined) {
+      return { biome: this.getBiomeFromId(overrideBiomeId), biomeId: overrideBiomeId };
+    }
+    
     const offsetX = this.getBiomeXOffset(worldX, worldZ);
     const offsetZ = this.getBiomeZOffset(worldX, worldZ);
     const closestPoint = this.biomePointGen.getClosestPoint(worldX + offsetX, worldZ + offsetZ);

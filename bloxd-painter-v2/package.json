@@ -16,11 +16,11 @@
     "voxel-crunch": "0.2.1"
   },
   "devDependencies": {
-    "vite": "^8.3.0",
-    "@types/ndarray": "1.1.0",
-    "@types/poisson-disk-sampling": "^2.2.4",
     "@types/jszip": "^3.4.0",
+    "@types/ndarray": "1.1.0",
     "@types/node": "^26.1.0",
-    "typescript": "^6.0.3"
+    "@types/poisson-disk-sampling": "^2.2.4",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.0"
   }
 }
