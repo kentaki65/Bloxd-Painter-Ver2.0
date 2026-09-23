@@ -3,6 +3,7 @@ import { createGenerator, generateAndApplyChunk } from "./world/generateChunk";
 import { chunkSize } from "./core/types";
 import { renderTopDown } from "./render/renderTop";
 import { HeightOverrideLayer } from "./world/overrideLayers/HeightOverrideLayer";
+import { Viewer3D } from "./render/viewer3d";
 
 const world = new VoxelWorld();
 const heightOverrideLayer = new HeightOverrideLayer();
@@ -47,6 +48,6 @@ for (let y = -35; y <= 50; y++) {
   console.log(`y=${y}: block=${b}`);
 }
 
-const canvas = document.getElementById("map") as HTMLCanvasElement;
-const ctx = canvas.getContext("2d")!;
-renderTopDown(world, ctx, 0, 0, 320, 320);
+const viewerContainer = document.getElementById("viewer3d") as HTMLElement;
+const viewer = new Viewer3D(viewerContainer);
+viewer.renderHeightfield(world, 0, 0, 320, 320);

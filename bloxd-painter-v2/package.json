@@ -13,6 +13,7 @@
     "ndarray": "1.1.1",
     "poisson-disk-sampling": "^2.3.1",
     "simplex-noise": "3.0.0",
+    "three": "^0.186.0",
     "voxel-crunch": "0.2.1"
   },
   "devDependencies": {
@@ -20,6 +21,7 @@
     "@types/ndarray": "1.1.0",
     "@types/node": "^26.1.0",
     "@types/poisson-disk-sampling": "^2.2.4",
+    "@types/three": "^0.186.0",
     "typescript": "^6.0.3",
     "vite": "^8.3.0"
   }
