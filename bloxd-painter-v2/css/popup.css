@@ -1,0 +1,84 @@
+.popup {
+  border: 2px solid black;
+  border-radius: 10px;
+  background-color: white;
+  padding: 5px;
+
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 300px;
+
+  transform: translateX(120%);
+  opacity: 0;
+
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  z-index: 9999;
+}
+
+.show {
+  transform: translateX(0);
+  opacity: 1;
+  z-index: 9999;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 10000;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.modalOverlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  border: 2px solid black;
+  border-radius: 10px;
+  background-color: white;
+  padding: 20px;
+  width: 320px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modalTitle {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rulesList {
+  margin: 0 0 8px 0;
+  padding-left: 20px;
+  font-size: 0.85em;
+  color: #aaa;
+}
+.rulesList li {
+  margin-bottom: 2px;
+}
+.rulesList code {
+  background: #222;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
