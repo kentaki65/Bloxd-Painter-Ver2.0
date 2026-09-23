@@ -53,7 +53,7 @@ export class Viewer3D {
     for (let i = 0; i < positions.count; i++) {
       const localX = Math.round(positions.getX(i) + width / 2);
       const localZ = Math.round(positions.getZ(i) + depth / 2);
-      const worldX = originX + localX;
+      const worldX = originX + (width - 1 - localX);
       const worldZ = originZ + localZ;
 
       const top = world.findTopBlock(worldX, worldZ);
