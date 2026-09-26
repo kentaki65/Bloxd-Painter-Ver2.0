@@ -2,7 +2,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { VoxelWorld } from "../world/VoxelWorld";
-import { getColor } from "../render/blockColors";
+import { getColor } from "./blockColors";
 
 export class Viewer3D {
   private geometryWidth = 0;

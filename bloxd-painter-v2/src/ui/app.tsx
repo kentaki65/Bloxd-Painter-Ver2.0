@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
+import MenuBar from "./components/menuBar";
+import UnderBar from "./components/undetbar";
+import Viewer from "./components/viewer";
 import { VoxelWorld } from "../world/VoxelWorld";
-import { createGenerator, generateAndApplyChunk } from "../world/generateChunk";
-import { applyHeightBrush } from "../brush/heightBrush";
-import { applyBiomeBrush } from "../brush/biomeBrush";
 import { HeightOverrideLayer } from "../world/overrideLayers/HeightOverrideLayer";
 import { BiomeOverrideLayer } from "../world/overrideLayers/BiomeOverrideLayer";
-import { MapCanvas } from "./mapCanvas";
-import {  chunkSize } from "../core/types";
+import { createGenerator, generateChunksAsync } from "../world/generateChunk";
+import { applyHeightBrush } from "../brush/heightBrush";
+import { applyBiomeBrush } from "../brush/biomeBrush";
 
 const SEED = "vast_ridge_755876";
 const chunkX = 10;
-const chunkY = 6;
+const chunkY = 10;
 const chunkZ = 10;
 
 const CHUNK_Y_START = -32;
@@ -22,24 +23,18 @@ export function App() {
   const [generator] = useState(() => createGenerator(SEED, 1, biomeOverrideLayer, heightOverrideLayer));
 
   const [brushMode, setBrushMode] = useState<"height" | "biome">("height");
+  const [biomeType, setBiomeType] = useState<number>(1);
   const [isReady, setIsReady] = useState(false);
 
-  const [ biomeType, setBiomeType ] = useState<number>(1);
-
   useEffect(() => {
-    for (let cx = 0; cx < chunkX; cx++) {
-      for (let cy = 0; cy < chunkY; cy++) {
-        for (let cz = 0; cz < chunkZ; cz++) {
-          generateAndApplyChunk(world, generator, cx * chunkSize, -32 + cy * chunkSize, cz * chunkSize);
-        }
-      }
-    }
-    setIsReady(true);
+    generateChunksAsync(world, generator, chunkX, chunkY, chunkZ).then(() => {
+      setIsReady(true);
+    })
   }, [])
-
-  function handleSetBiomeType(newValue: string){
+  
+  function handleSetBiomeType(newValue: string) {
     const value = parseInt(newValue, 10);
-    if(Number.isNaN(value)) return;
+    if (Number.isNaN(value)) return;
 
     setBiomeType(value);
   }
@@ -56,17 +51,11 @@ export function App() {
 
   return (
     <div className="screen">
-      {isReady ? (
-        <MapCanvas world={world} onPaint={handlePaint} />
-      ) : (
-        <div>生成中...</div>
+      <MenuBar />
+      {isReady && (
+        <Viewer world={world} onPaint={handlePaint}/>
       )}
-      <button onClick={() => setBrushMode(brushMode === "height" ? "biome" : "height")}>
-        Mode: {brushMode}
-      </button>
-      <label>
-        biomeId: <input value={biomeType} type="number" onChange={e => handleSetBiomeType(e.target.value)}></input>
-      </label>
+      <UnderBar />
     </div>
-  );
+  )
 }

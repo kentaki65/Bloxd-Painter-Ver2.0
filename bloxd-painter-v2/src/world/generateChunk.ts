@@ -6,9 +6,9 @@ import { BiomeOverrideLayer } from "./overrideLayers/BiomeOverrideLayer";
 import type { HeightOverrideLayer } from "./overrideLayers/HeightOverrideLayer";
 
 export function createGenerator(
-  seed: string, 
-  worldScale = 1, 
-  overrideBiome: BiomeOverrideLayer | null= null,
+  seed: string,
+  worldScale = 1,
+  overrideBiome: BiomeOverrideLayer | null = null,
   overrideHeight: HeightOverrideLayer | null = null,
 ) {
   return new WorldGenerator(chunkSize, blockMetadata, {}, seed, false, [], worldScale, null, overrideBiome, overrideHeight);
@@ -39,4 +39,40 @@ export function generateAndApplyChunk(
       }
     }
   }
+}
+
+export function generateChunks(
+  world: VoxelWorld,
+  generator: WorldGenerator,
+  chunkX: number,
+  chunkY: number,
+  chunkZ: number
+) {
+  for (let cx = 0; cx < chunkX; cx++) {
+    for (let cy = 0; cy < chunkY; cy++) {
+      for (let cz = 0; cz < chunkZ; cz++) {
+        generateAndApplyChunk(world, generator, cx * chunkSize, -32 + cy * chunkSize, cz * chunkSize);
+      }
+    }
+  }
+}
+
+//worker化までこれで応急処置
+export function generateChunksAsync(
+  world: VoxelWorld,
+  generator: WorldGenerator,
+  chunkX: number,
+  chunkY: number,
+  chunkZ: number
+): Promise<void> {
+  return new Promise((resolve) => {
+    for (let cx = 0; cx < chunkX; cx++) {
+      for (let cy = 0; cy < chunkY; cy++) {
+        for (let cz = 0; cz < chunkZ; cz++) {
+          generateAndApplyChunk(world, generator, cx * chunkSize, -32 + cy * chunkSize, cz * chunkSize);
+        }
+      }
+    }
+    resolve();
+  })
 }

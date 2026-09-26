@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
-import { VoxelWorld } from "../world/VoxelWorld";
-import { renderTopDown, renderTopDownPartial } from "../render/renderTop";
-import { BRUSH_RADIUS } from "../core/types";
+import { VoxelWorld } from "../../world/VoxelWorld";
+import { renderTopDown, renderTopDownPartial } from "../../render/renderTop";
+import { BRUSH_RADIUS } from "../../core/types";
 
 interface Props {
   world: VoxelWorld;
@@ -43,15 +43,13 @@ export function MapCanvas({ world, onPaint }: Props) {
     onPaint(worldX, worldZ);
 
     const ctx = canvas.getContext("2d")!;
-    const margin = BRUSH_RADIUS + 2; // brush/circleBrush.tsで定義したBRUSH_RADIUSをimportするか、定数を共有する必要あり
+    const margin = BRUSH_RADIUS + 2;
     renderTopDownPartial(world, ctx, 0, 0, worldX - margin, worldZ - margin, margin * 2, margin * 2);
   }
 
   return (
     <canvas
       ref={canvasRef}
-      width={320}
-      height={320}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={() => isDragging.current = false}
