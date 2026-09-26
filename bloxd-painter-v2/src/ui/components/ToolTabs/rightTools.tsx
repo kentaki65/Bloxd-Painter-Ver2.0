@@ -2,10 +2,23 @@ import { useState } from "react";
 import TabButton from "../common/tabButton";
 import type { RightTabTypes, TabProp } from "../common/types";
 
+interface RangeOption {
+  enabled: boolean;
+  value: number;
+}
+
+interface BrushOptions {
+  intensity: number;
+  atOrAbove: RangeOption;
+  atOrBelow: RangeOption;
+  slopeAbove: RangeOption;
+  slopeBelow: RangeOption;
+}
+
 function BrushesTab({ name }: TabProp) {
   return (
     <>
-      <div className="toolName2">{name}</div>
+      <div className="toolName">{name}</div>
       <div className="columnWrap">
         <div className="toolContent">
 
@@ -15,41 +28,137 @@ function BrushesTab({ name }: TabProp) {
   )
 }
 
+function SettingRange({ name, id, max, min, step, value, onChange }: {
+  name: string, id: string, min: number, max: number, step: number, value: number, onChange: (value: number) => void
+}) {
+  return (
+    <div className="setting-group">
+      <label htmlFor={id}>{name}</label>
+      <input
+        type="range"
+        id={id}
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => { onChange(Number(e.target.value)) }}
+      />
+    </div>
+  )
+}
+
+//name,id,min,max,value,onChange
+function SettingToggleNumber({ name, id, min, max, value, onChange }: {
+  name: string; id: string; min: number; max: number;
+  value: RangeOption;
+  onChange: (next: RangeOption) => void;
+}) {
+  return (
+    <div className="setting-group">
+      <label htmlFor={id}>{name}</label>
+      <input
+        type="checkbox"
+        id={id}
+        checked={value.enabled}
+        onChange={(event) => onChange({ ...value, enabled: event.target.checked })}
+      />
+      <input
+        type="number"
+        min={min}
+        max={max}
+        value={value.value}
+        onChange={(event) => onChange({ ...value, value: Number(event.target.value) })}
+      />
+    </div>
+  )
+}
+
 //もっと分割できそう
 function OptionsTab({ name }: TabProp) {
+  const [brushOptions, setBrushOption] = useState<BrushOptions>({
+    intensity: 0.025,
+    atOrAbove: {
+      enabled: false,
+      value: 0
+    },
+    atOrBelow: {
+      enabled: false,
+      value: 255 //ワールドの最大高さ
+    },
+    slopeAbove: {
+      enabled: false,
+      value: 0,
+    },
+    slopeBelow: {
+      enabled: false,
+      value: 90
+    }
+  })
   return (
     <>
-      <div className="toolName2">{name}</div>
+      <div className="toolName">{name}</div>
       <div className="columnWrap">
         <div className="toolContent">
           <div className="settingWrapper">
-            <div className="setting-group">
-              <label htmlFor="intensity">intensity:</label>
-              <input type="range" id="intensity" min="0.025" max="0.1" step="0.001" />
-            </div>
-            <div className="setting-group">
-              <label htmlFor="atOrAboveEnabled">at or above:</label>
-              <input type="checkbox" id="atOrAboveEnabled" />
-              <input type="number" id="orAboveRangeInput" min="0" max="255" value="0" />
-            </div>
+            <SettingRange
+              name="intensity" id="intensity"
+              max={0.1} min={0.025} step={0.001}
+              value={brushOptions.intensity}
+              onChange={(newValue) => {
+                setBrushOption(prev => ({
+                  ...prev,
+                  intensity: newValue
+                }))
+              }}
+            />
 
-            <div className="setting-group">
-              <label htmlFor="atOrBelowEnabled">at or below:</label>
-              <input type="checkbox" id="atOrBelowEnabled" />
-              <input type="number" id="atOrBelowRangeInput" min="0" max="255" value="0" />
-            </div>
+            <SettingToggleNumber
+              name="atOrAbove"
+              id="atOrAbove"
+              min={0} max={255} value={brushOptions.atOrAbove}
+              onChange={(newValue) => {
+                setBrushOption(prev => ({
+                  ...prev,
+                  atOrAbove: { ...newValue }
+                }))
+              }}
+            />
 
-            <div className="setting-group">
-              <label htmlFor="slopeAboveInput">slope at or above (degrees):</label>
-              <input type="checkbox" id="slopeAboveEnabled" />
-              <input type="number" id="slopeAboveInput" min="0" max="90" value="0" />
-            </div>
+            <SettingToggleNumber
+              name="atOrBelow"
+              id="atOrBelow"
+              min={0} max={255} value={brushOptions.atOrBelow}
+              onChange={(newValue) => {
+                setBrushOption(prev => ({
+                  ...prev,
+                  atOrBelow: { ...newValue }
+                }))
+              }}
+            />
 
-            <div className="setting-group">
-              <label htmlFor="slopeBelowEnabled">slope at or below (degrees):</label>
-              <input type="checkbox" id="slopeBelowEnabled" />
-              <input type="number" id="slopeBelowInput" min="0" max="90" value="90" />
-            </div>
+            <SettingToggleNumber
+              name="slopeAbove"
+              id="slopeAbove"
+              min={0} max={255} value={brushOptions.slopeAbove}
+              onChange={(newValue) => {
+                setBrushOption(prev => ({
+                  ...prev,
+                  slopeAbove: { ...newValue }
+                }))
+              }}
+            />
+
+            <SettingToggleNumber
+              name="slopeBelow"
+              id="slopeBelow"
+              min={0} max={255} value={brushOptions.slopeBelow}
+              onChange={(newValue) => {
+                setBrushOption(prev => ({
+                  ...prev,
+                  slopeBelow: { ...newValue }
+                }))
+              }}
+            />
           </div>
         </div>
       </div>

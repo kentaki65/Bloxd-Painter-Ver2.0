@@ -74,12 +74,12 @@
   padding: 5px;
 }
 
-.toolName, .toolName2 {
+.toolName {
   padding: 5px;
   font-weight: bold;
 }
 
-.toolName::before, .toolName2::before {
+.toolName::before {
   content: "*"
 }
 
