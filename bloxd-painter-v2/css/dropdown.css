@@ -1,10 +1,3 @@
-.dropdownMenu {
-  display: none;
-  width: max-content;
-  position: absolute;
-  top: 100%;
-}
-
 .dropdownButton {
   width: max-content;
   border: none;
@@ -15,29 +8,34 @@
   position: relative;
 }
 
-.dropdownButton:hover, .attached:hover{
-  cursor: pointer;
-  background-color: chocolate;
-  border: 2px solid gray;
-}
-
 .attached {
   border: 0;
 }
 
-.option:hover > .dropdownMenu{
+.dropdown {
+  display: flex;
+  padding: 5px;
+  color: white;
+  background-color: gray;
+}
+
+.dropdownMenu {
+  width: max-content;
+  position: absolute;
+  top: 100%;
   display: flex;
   flex-direction: column;
-  padding: 3px;
-  border: 2px solid gray;
-  background-color: white;
   align-items: center;
 }
 
-.dropdown {
-  display: flex;
-  color: white;
-  border: 2px solid gray;
-  background-color: gray;
-  border-radius: 2px;
+.dropdownMenu.active {
+  outline: 2px solid gray;
+}
+
+.nameLabel {
+  cursor: pointer;
+}
+
+.nameLabel.active {
+  background-color: chocolate;
 }
