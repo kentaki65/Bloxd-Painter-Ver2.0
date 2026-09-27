@@ -1,5 +1,6 @@
 export const blockColors: Record<number, string> = {
   0: "transparent",   // Air
+  1: "transparent",
   2: "#8B5A2B",        // Dirt
   4: "#5A8F3C",        // Grass Block
   5: "#DBC98F",        // Sand

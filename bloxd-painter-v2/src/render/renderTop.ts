@@ -1,24 +1,27 @@
 // src/render/renderTop.ts
+import { worldToCanvasX } from "../core/utils";
 import { VoxelWorld } from "../world/VoxelWorld";
 import { getColor } from "./blockColors";
 
 export function renderTopDown(
   world: VoxelWorld,
-  ctx: CanvasRenderingContext2D,
-  originX: number, originZ: number, // 描画開始座標
-  width: number, height: number      // 描画するブロック数
+  ctx: OffscreenCanvasRenderingContext2D,
+  originX: number, originZ: number,
+  width: number, height: number
 ): void {
   const imageData = ctx.createImageData(width, height);
 
   for (let dz = 0; dz < height; dz++) {
     for (let dx = 0; dx < width; dx++) {
-      const x = originX + (width - 1 - dx);;
+      const x = originX + dx;
       const z = originZ + dz;
       const top = world.findTopBlock(x, z);
       const color = top ? getColor(top.blockId) : "#000000";
-
       const [r, g, b] = hexToRgb(color);
-      const idx = (dz * width + dx) * 4;
+
+      const canvasX = worldToCanvasX(x, originX, width);
+
+      const idx = (dz * width + canvasX) * 4;
       imageData.data[idx] = r;
       imageData.data[idx + 1] = g;
       imageData.data[idx + 2] = b;
@@ -29,30 +32,27 @@ export function renderTopDown(
   ctx.putImageData(imageData, 0, 0);
 }
 
-// renderTopDown に範囲限定版を追加
 export function renderTopDownPartial(
   world: VoxelWorld,
-  ctx: CanvasRenderingContext2D,
-  viewOriginX: number, viewOriginZ: number, // ビュー全体の原点
-  updateX: number, updateZ: number,          // 更新したい範囲の開始座標（ワールド座標）
+  ctx: OffscreenCanvasRenderingContext2D,
+  viewOriginX: number, viewOriginZ: number,
+  updateX: number, updateZ: number,
   updateWidth: number, updateHeight: number
 ): void {
   const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   for (let dz = 0; dz < updateHeight; dz++) {
     for (let dx = 0; dx < updateWidth; dx++) {
-      const x = updateX + dx;
+      const x = updateX + dx;         // 反転なし、素直に
       const z = updateZ + dz;
       const top = world.findTopBlock(x, z);
       const color = top ? getColor(top.blockId) : "#000000";
       const [r, g, b] = hexToRgb(color);
 
-      // キャンバス上の位置（反転を考慮）
-      const canvasX = ctx.canvas.width - 1 - (x - viewOriginX);
+      const canvasX = worldToCanvasX(x, viewOriginX, ctx.canvas.width);  // 書き込み先だけ変換
       const canvasY = z - viewOriginZ;
 
       if (canvasX < 0 || canvasX >= ctx.canvas.width || canvasY < 0 || canvasY >= ctx.canvas.height) continue;
-
       const idx = (canvasY * ctx.canvas.width + canvasX) * 4;
       imageData.data[idx] = r;
       imageData.data[idx + 1] = g;

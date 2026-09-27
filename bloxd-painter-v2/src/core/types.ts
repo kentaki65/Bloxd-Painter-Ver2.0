@@ -1,5 +1,5 @@
 export const chunkSize = 32;
-export const BRUSH_RADIUS = 16;
+export const BRUSH_RADIUS = 32;
 export type Vec3 = [number, number, number];
 
 export enum BiomeId {

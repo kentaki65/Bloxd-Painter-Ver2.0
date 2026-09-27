@@ -10,9 +10,9 @@ import { applyHeightBrush } from "../brush/heightBrush";
 import { applyBiomeBrush } from "../brush/biomeBrush";
 
 const SEED = "vast_ridge_755876";
-const chunkX = 10;
-const chunkY = 10;
-const chunkZ = 10;
+const chunkX = 5;
+const chunkY = 5;
+const chunkZ = 5;
 
 const CHUNK_Y_START = -32;
 
@@ -52,9 +52,7 @@ export function App() {
   return (
     <div className="screen">
       <MenuBar />
-      {isReady && (
-        <Viewer world={world} onPaint={handlePaint}/>
-      )}
+      {isReady && <Viewer world={world} onPaint={handlePaint}/>}
       <UnderBar />
     </div>
   )
