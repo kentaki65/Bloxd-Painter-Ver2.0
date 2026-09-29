@@ -1,11 +1,13 @@
 import React, { useRef, useEffect } from "react";
 import { VoxelWorld } from "../../world/VoxelWorld";
 import { renderTopDown, renderTopDownPartial } from "../../render/renderTop";
-import { BRUSH_RADIUS } from "../../core/types";
+import { BRUSH_RADIUS, chunkSize } from "../../core/types";
 import { canvasToWorldX, worldToCanvasX } from "../../core/utils";
+import type { WorldSettings } from "./common/types";
 
 interface Props {
   world: VoxelWorld;
+  worldInfo: WorldSettings;
   onPaint: (worldX: number, worldZ: number) => void;
 }
 
@@ -18,6 +20,11 @@ interface CameraRef {
   panStartY: number;
 }
 
+interface MouseRef {
+  x: number,
+  y: number,
+}
+
 function drawScreen(
   world: VoxelWorld,
   ctx: OffscreenCanvasRenderingContext2D,
@@ -25,20 +32,6 @@ function drawScreen(
   width: number, height: number
 ) {
   renderTopDown(world, ctx, originX, originZ, width, height);
-}
-
-function redrawCanvas(
-  canvasCtx: CanvasRenderingContext2D,
-  offScreenCanvas: OffscreenCanvas,
-  camera: CameraRef
-) {
-  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
-  canvasCtx.imageSmoothingEnabled = false;
-  canvasCtx.drawImage(
-    offScreenCanvas,
-    camera.camX, camera.camY,
-    offScreenCanvas.width * camera.zoom, offScreenCanvas.height * camera.zoom
-  );
 }
 
 function drawScreenImagePartial(
@@ -60,12 +53,40 @@ function drawScreenImagePartial(
   );
 }
 
+function redrawCanvas(
+  canvasCtx: CanvasRenderingContext2D,
+  offScreenCanvas: OffscreenCanvas,
+  camera: CameraRef, mouse: MouseRef | null
+) {
+  canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+  canvasCtx.imageSmoothingEnabled = false;
+  canvasCtx.drawImage(
+    offScreenCanvas,
+    camera.camX, camera.camY,
+    offScreenCanvas.width * camera.zoom, offScreenCanvas.height * camera.zoom
+  );
+
+  drawBrushPreview(canvasCtx, mouse, BRUSH_RADIUS * camera.zoom);
+}
+
+function drawBrushPreview(
+  ctx: CanvasRenderingContext2D,
+  mouseState: MouseRef | null, radius: number // 画面上の半径（ブラシ半径 × zoom）
+) {
+  if (mouseState) {
+    const { x, y } = mouseState;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
 //screenX = wx * zoom + camX;
 //screenY = wy * zoom + camY;
 //wx = (screenX - camX) / zoom;
 //wy = (screenY - camY) / zoom;
 
-export function MapCanvas({ world, onPaint }: Props) {
+export function MapCanvas({ world, worldInfo, onPaint }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const offscreenCanvas = useRef<OffscreenCanvas>(null);
   const isDragging = useRef(false);
@@ -79,6 +100,8 @@ export function MapCanvas({ world, onPaint }: Props) {
     panStartY: 0,
   })
 
+  const mouseRef = useRef<MouseRef | null>(null);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -89,7 +112,7 @@ export function MapCanvas({ world, onPaint }: Props) {
       canvas.width = width | 0;
       canvas.height = height | 0;
 
-      const canvasCtx = canvas.getContext("2d", { willReadFrequently: true });
+      const canvasCtx = canvas.getContext("2d");
       if (!canvasCtx) return;
 
       const offScreenCanvas = new OffscreenCanvas(width, height);
@@ -98,7 +121,7 @@ export function MapCanvas({ world, onPaint }: Props) {
 
       offscreenCanvas.current = offScreenCanvas;
       drawScreen(world, offScreenCanvasCtx, 0, 0, width, height);
-      redrawCanvas(canvasCtx, offScreenCanvas, cameraRef.current)
+      redrawCanvas(canvasCtx, offScreenCanvas, cameraRef.current, mouseRef.current)
     });
     observer.observe(canvas);
 
@@ -119,7 +142,29 @@ export function MapCanvas({ world, onPaint }: Props) {
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
+    const canvas = canvasRef.current!;
+    const canvasCtx = canvas.getContext("2d")!;
+    const offCanvas = offscreenCanvas.current!;
+
+    if (mouseRef.current) {
+      const canvas = canvasRef.current!;
+      const canvasCtx = canvas.getContext("2d");
+      if (!canvasCtx) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const canvasX = e.clientX - rect.left;
+      const canvasY = e.clientY - rect.top;
+
+      mouseRef.current.x = canvasX;
+      mouseRef.current.y = canvasY;
+    } else {
+      mouseRef.current = {
+        x: 0, y: 0
+      }
+    }
+
     if (isDragging.current) paintAt(e);
+
     if (cameraRef.current.panning) {
       const dx = e.clientX - cameraRef.current.panStartX;
       const dy = e.clientY - cameraRef.current.panStartY;
@@ -130,14 +175,12 @@ export function MapCanvas({ world, onPaint }: Props) {
       cameraRef.current.panStartX = e.clientX;
       cameraRef.current.panStartY = e.clientY;
 
-      const canvas = canvasRef.current!;
-      const canvasCtx = canvas.getContext("2d")!;
-      const offCanvas = offscreenCanvas.current!;
-
       if (offCanvas) {
-        redrawCanvas(canvasCtx, offCanvas, cameraRef.current);
+        redrawCanvas(canvasCtx, offCanvas, cameraRef.current, mouseRef.current);
       }
     }
+
+    redrawCanvas(canvasCtx, offCanvas, cameraRef.current, mouseRef.current);
   }
 
   function handlePointerUp(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -157,7 +200,7 @@ export function MapCanvas({ world, onPaint }: Props) {
       const offCanvas = offscreenCanvas.current!;
 
       if (offCanvas) {
-        redrawCanvas(canvasCtx, offCanvas, cameraRef.current);
+        redrawCanvas(canvasCtx, offCanvas, cameraRef.current, mouseRef.current);
       }
     }
   }
@@ -174,6 +217,14 @@ export function MapCanvas({ world, onPaint }: Props) {
     const rawCanvasX = Math.floor((canvasX - cameraRef.current.camX) / cameraRef.current.zoom);
     const worldZ = Math.floor((canvasY - cameraRef.current.camY) / cameraRef.current.zoom);
     const worldX = canvasToWorldX(rawCanvasX, 0, canvas.width);
+
+    const worldWidth = worldInfo.chunkX * chunkSize;
+    const worldHeight = worldInfo.chunkZ * chunkSize;
+
+    if (worldX < 0 || worldX >= worldWidth || worldZ < 0 || worldZ >= worldHeight) {
+      return;
+    }
+
     onPaint(worldX, worldZ);
 
     const offCanvas = offscreenCanvas.current!;

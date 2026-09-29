@@ -1,5 +1,10 @@
 export const chunkSize = 32;
 export const BRUSH_RADIUS = 32;
+
+export const biomeRelations: Record<string, BiomeId[]> = {
+  
+}
+
 export type Vec3 = [number, number, number];
 
 export enum BiomeId {

@@ -1,59 +1,102 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
 import MenuBar from "./components/menuBar";
 import UnderBar from "./components/undetbar";
 import Viewer from "./components/viewer";
+import CreateWorldModal from "./components/overlayModal";
+
 import { VoxelWorld } from "../world/VoxelWorld";
 import { HeightOverrideLayer } from "../world/overrideLayers/HeightOverrideLayer";
 import { BiomeOverrideLayer } from "../world/overrideLayers/BiomeOverrideLayer";
 import { createGenerator, generateChunksAsync } from "../world/generateChunk";
 import { applyHeightBrush } from "../brush/heightBrush";
 import { applyBiomeBrush } from "../brush/biomeBrush";
-
-const SEED = "vast_ridge_755876";
-const chunkX = 5;
-const chunkY = 5;
-const chunkZ = 5;
+import type { ToolId, WorldSettings } from "./components/common/types";
+import { BiomeId } from "../core/types";
 
 const CHUNK_Y_START = -32;
 
-export function App() {
-  const [world] = useState(() => new VoxelWorld());
-  const [heightOverrideLayer] = useState(() => new HeightOverrideLayer());
-  const [biomeOverrideLayer] = useState(() => new BiomeOverrideLayer());
-  const [generator] = useState(() => createGenerator(SEED, 1, biomeOverrideLayer, heightOverrideLayer));
 
-  const [brushMode, setBrushMode] = useState<"height" | "biome">("height");
-  const [biomeType, setBiomeType] = useState<number>(1);
+export function App() {
+  const worldInfo = useRef<WorldSettings>({
+    fileName: "idk",
+    seed: "vast_ridge_755876",
+    chunkX: 5,
+    chunkZ: 5,
+    chunkY: 5,
+  })
+
+  const [world, setWorld] = useState(() => new VoxelWorld());
+  const [heightOverrideLayer, setHeightOverrideLayer] = useState(new HeightOverrideLayer());
+  const [biomeOverrideLayer, setBiomeOverrideLayer] = useState(new BiomeOverrideLayer());
+  const [generator, setGenerator] = useState(() => createGenerator(worldInfo.current.seed, 1, biomeOverrideLayer, heightOverrideLayer));
+
+  const [brushMode, setBrushMode] = useState<ToolId>("height");
+  const [biomeType, setBiomeType] = useState<BiomeId>(6)
+
   const [isReady, setIsReady] = useState(false);
+  const [isCreateWorldModalOpen, setCreateWorldModalOpen] = useState(false);
 
   useEffect(() => {
-    generateChunksAsync(world, generator, chunkX, chunkY, chunkZ).then(() => {
+    generateChunksAsync(world, worldInfo.current).then(() => {
       setIsReady(true);
     })
-  }, [])
-  
-  function handleSetBiomeType(newValue: string) {
-    const value = parseInt(newValue, 10);
-    if (Number.isNaN(value)) return;
-
-    setBiomeType(value);
-  }
+  }, [world])
 
   function handlePaint(x: number, z: number) {
-    const biomeId = biomeType;
-
     if (brushMode === "height") {
-      applyHeightBrush(world, generator, heightOverrideLayer, x, z, 15, chunkY, CHUNK_Y_START);
+      applyHeightBrush(world, generator, heightOverrideLayer, x, z, 15, worldInfo.current.chunkY, CHUNK_Y_START);
+    } else if(brushMode === "biome"){
+      applyBiomeBrush(world, generator, biomeOverrideLayer, x, z, biomeType, worldInfo.current.chunkY, CHUNK_Y_START);
     } else {
-      applyBiomeBrush(world, generator, biomeOverrideLayer, x, z, biomeId, chunkY, CHUNK_Y_START);
+      //なにもせえへんで
     }
   }
 
+  const handleChangeBrush = (newTool: ToolId) => setBrushMode(newTool);
+  const handleChangeBiome = (newBiome: BiomeId) => {
+    setBiomeType(newBiome)
+  };
+
   return (
     <div className="screen">
-      <MenuBar />
-      {isReady && <Viewer world={world} onPaint={handlePaint}/>}
+      <MenuBar onOpenCreateWorld={() => setCreateWorldModalOpen(true)} />
+
+      {isReady && <Viewer 
+        world={world} 
+        worldInfo={worldInfo.current} 
+
+        selectedTool={brushMode}
+        selectedBiome={BiomeId[biomeType]}
+        onPaint={handlePaint} 
+
+        onChangeBiome={handleChangeBiome}
+        onChangeBrush={handleChangeBrush}
+      />}
+
       <UnderBar />
+
+      <CreateWorldModal
+        isOpen={isCreateWorldModalOpen}
+        onConfirm={(worldSetting) => {
+          worldInfo.current = worldSetting;
+
+          setIsReady(false);
+
+          const newWorld = new VoxelWorld();
+          const newHeightOverrideLayer = new HeightOverrideLayer();
+          const newBiomeOverrideLayer = new BiomeOverrideLayer();
+          const newGenerator = createGenerator(worldInfo.current.seed, 1, newBiomeOverrideLayer, newHeightOverrideLayer);
+
+          setWorld(newWorld);
+          setHeightOverrideLayer(newHeightOverrideLayer);
+          setBiomeOverrideLayer(newBiomeOverrideLayer);
+          setGenerator(newGenerator);
+
+          setCreateWorldModalOpen(false);
+        }}
+        onClose={() => setCreateWorldModalOpen(false)}
+      />
     </div>
   )
 }

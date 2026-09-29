@@ -32,15 +32,6 @@
   justify-content: center;
 
   z-index: 10000;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-
-.modalOverlay.show {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .modal {

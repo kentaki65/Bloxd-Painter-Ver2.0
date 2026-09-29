@@ -26,9 +26,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.dropdownMenu.active {
   outline: 2px solid gray;
 }
 

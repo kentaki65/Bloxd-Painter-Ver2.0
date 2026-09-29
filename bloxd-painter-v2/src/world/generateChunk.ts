@@ -4,6 +4,7 @@ import { chunkSize } from "../core/types";
 import type { VoxelWorld } from "./VoxelWorld";
 import { BiomeOverrideLayer } from "./overrideLayers/BiomeOverrideLayer";
 import type { HeightOverrideLayer } from "./overrideLayers/HeightOverrideLayer";
+import type { WorldSettings } from "../ui/components/common/types";
 
 export function createGenerator(
   seed: string,
@@ -41,38 +42,54 @@ export function generateAndApplyChunk(
   }
 }
 
-export function generateChunks(
-  world: VoxelWorld,
-  generator: WorldGenerator,
-  chunkX: number,
-  chunkY: number,
-  chunkZ: number
-) {
-  for (let cx = 0; cx < chunkX; cx++) {
-    for (let cy = 0; cy < chunkY; cy++) {
-      for (let cz = 0; cz < chunkZ; cz++) {
-        generateAndApplyChunk(world, generator, cx * chunkSize, -32 + cy * chunkSize, cz * chunkSize);
-      }
-    }
-  }
-}
-
-//worker化までこれで応急処置
 export function generateChunksAsync(
   world: VoxelWorld,
-  generator: WorldGenerator,
-  chunkX: number,
-  chunkY: number,
-  chunkZ: number
+  worldInfo: WorldSettings,
 ): Promise<void> {
   return new Promise((resolve) => {
+    const { seed, chunkX, chunkY, chunkZ } = worldInfo;
+    const worker = new Worker(new URL("./generateChunk.worker.ts", import.meta.url), { type: "module" });
+
+    const target = chunkX * chunkY * chunkZ;
+    let generated = 0;
+
+    worker.postMessage({ type: "init", seed });
+
     for (let cx = 0; cx < chunkX; cx++) {
       for (let cy = 0; cy < chunkY; cy++) {
         for (let cz = 0; cz < chunkZ; cz++) {
-          generateAndApplyChunk(world, generator, cx * chunkSize, -32 + cy * chunkSize, cz * chunkSize);
+          worker.postMessage({
+            type: "generate",
+            chunkX: cx,
+            chunkY: cy,
+            chunkZ: cz
+          })
         }
       }
     }
-    resolve();
+    
+    worker.onmessage = (event) => {
+      const { chunkX, chunkY, chunkZ, data } = event.data;
+      const voxelChunk = world.getOrCreateChunk(
+        Math.floor(chunkX / chunkSize),
+        Math.floor(chunkY / chunkSize),
+        Math.floor(chunkZ / chunkSize)
+      );
+
+      for (let lx = 0; lx < chunkSize; lx++) {
+        for (let ly = 0; ly < chunkSize; ly++) {
+          for (let lz = 0; lz < chunkSize; lz++) {
+            const idx = lz + ly * chunkSize + lx * chunkSize * chunkSize;
+            voxelChunk.setLocal(lx, ly, lz, data[idx]);
+          }
+        }
+      }
+
+      generated++;
+      if (target === generated) {
+        worker.terminate();
+        resolve();
+      }
+    }
   })
 }
