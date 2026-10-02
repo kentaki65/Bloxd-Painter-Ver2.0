@@ -9,7 +9,7 @@ interface Props {
   world: VoxelWorld;
   worldInfo: WorldSettings;
   selectedTool: ToolId;
-  selectedBiome: string;
+  selectedBiome: BiomeId;
 
   onPaint: (worldX: number, worldZ: number) => void;
 

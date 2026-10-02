@@ -1,6 +1,7 @@
 import type { BiomeConstructorOptions, BlockMetadata, Seed } from "../../core/types.js";
 import { PineForest } from "./PineForest.js";
-import { WorldGenerator } from "../../generator/WorldGenerator.js";
+import type { WorldGenerator } from "../../generator/WorldGenerator.js";
+
 
 export class SnowyPineForest extends PineForest {
   constructor(

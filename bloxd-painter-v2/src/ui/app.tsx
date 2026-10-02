@@ -16,7 +16,6 @@ import { BiomeId } from "../core/types";
 
 const CHUNK_Y_START = -32;
 
-
 export function App() {
   const worldInfo = useRef<WorldSettings>({
     fileName: "idk",
@@ -32,7 +31,8 @@ export function App() {
   const [generator, setGenerator] = useState(() => createGenerator(worldInfo.current.seed, 1, biomeOverrideLayer, heightOverrideLayer));
 
   const [brushMode, setBrushMode] = useState<ToolId>("height");
-  const [biomeType, setBiomeType] = useState<BiomeId>(6)
+  const [biomeType, setBiomeType] = useState<BiomeId>(6);
+  
 
   const [isReady, setIsReady] = useState(false);
   const [isCreateWorldModalOpen, setCreateWorldModalOpen] = useState(false);
@@ -67,7 +67,7 @@ export function App() {
         worldInfo={worldInfo.current} 
 
         selectedTool={brushMode}
-        selectedBiome={BiomeId[biomeType]}
+        selectedBiome={biomeType}
         onPaint={handlePaint} 
 
         onChangeBiome={handleChangeBiome}

@@ -3,7 +3,8 @@ import { createPrefabFrequencySettings } from "../biomeUtils.js";
 import { FeatureHeight } from "../../core/constants.js";
 import { Plains } from "./Plains.js";
 import { SimpleOctavesNoise } from "../../noise/SimpleOctaveNoise.js";
-import { WorldGenerator } from "../../generator/WorldGenerator.js";
+import type { WorldGenerator } from "../../generator/WorldGenerator.js";
+
 
 export class FrozenBadlandsPlains extends Plains {
   constructor(

@@ -1,6 +1,7 @@
 import type { BiomeConstructorOptions, BlockMetadata, Seed } from "../../core/types.js";
 import { Forest } from "./Forest.js";
-import { WorldGenerator } from "../../generator/WorldGenerator.js";
+import type { WorldGenerator } from "../../generator/WorldGenerator.js";
+
 
 export class PumpkinForest extends Forest {
   constructor(

@@ -3,7 +3,7 @@ import { createPrefabFrequencySettings } from "../biomeUtils.js";
 import { Forest } from "./Forest.js";
 import type { BiomeConstructorOptions, BlockMetadata, Seed } from "../../core/types.js";
 import { prefabGroupsFrequencies } from "../../structures/prefab/prefabDatas/prefabFrequencies.js";
-import { WorldGenerator } from "../../generator/WorldGenerator.js";
+import type { WorldGenerator } from "../../generator/WorldGenerator.js";
 
 export class CherryForest extends Forest {
   constructor(

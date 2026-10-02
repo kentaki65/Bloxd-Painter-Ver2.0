@@ -2,7 +2,8 @@ import type { BiomeConstructorOptions, BlockMetadata, Seed } from "../../core/ty
 import { Forest } from "./Forest.js";
 import { FeatureHeight } from "../../core/constants.js";
 import { createPrefabFrequencySettings } from "../biomeUtils.js";
-import { WorldGenerator } from "../../generator/WorldGenerator.js";
+import type { WorldGenerator } from "../../generator/WorldGenerator.js";
+
 
 export class Jungle extends Forest {
   constructor(

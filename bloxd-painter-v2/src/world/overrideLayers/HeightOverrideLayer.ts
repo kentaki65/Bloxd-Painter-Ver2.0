@@ -16,12 +16,4 @@ export class HeightOverrideLayer {
   has(x: number, z: number): boolean {
     return this.map.has(this.key(x, z));
   }
-
-  toObject(): Record<string, number> {
-    return Object.fromEntries(this.map);
-  }
-
-  fromObject(from: Record<string, number>): void {
-    this.map = new Map(Object.entries(from));
-  }
 }

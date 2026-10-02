@@ -3,7 +3,8 @@ import type { BiomeConstructorOptions, BlockMetadata, Seed } from "../../core/ty
 import { Plains } from "./Plains.js";
 import { createPrefabFrequencySettings } from "../biomeUtils.js";
 import { mapleTreePrefabFrequencies } from "../../structures/prefab/prefabDatas/prefabFrequencies.js";
-import { WorldGenerator } from "../../generator/WorldGenerator.js";
+import type { WorldGenerator } from "../../generator/WorldGenerator.js";
+
 
 export class SnowyPlains extends Plains {
   constructor(

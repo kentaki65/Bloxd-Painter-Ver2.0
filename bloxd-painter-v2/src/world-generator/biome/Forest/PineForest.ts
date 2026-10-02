@@ -3,7 +3,8 @@ import { Forest } from "./Forest.js";
 import { createPrefabFrequencySettings } from "../biomeUtils.js";
 import { FeatureHeight } from "../../core/constants.js";
 import { forestPrefabsFrequencies } from "../../structures/prefab/prefabDatas/prefabFrequencies.js";
-import { WorldGenerator } from "../../generator/WorldGenerator.js";
+import type { WorldGenerator } from "../../generator/WorldGenerator.js";
+
 
 export class PineForest extends Forest {
   constructor(

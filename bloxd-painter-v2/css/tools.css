@@ -31,7 +31,8 @@
   cursor: pointer;
 }
 
-.tab:hover, .tab:hover button {
+.tab:hover,
+.tab:hover button {
   background-color: orange;
 }
 
@@ -55,12 +56,10 @@
   position: absolute;
   inset: 0;
 
-  background: linear-gradient(
-    to bottom,
-    rgba(255,255,255,0.6),
-    rgba(255,255,255,0.2) 2%,
-    rgba(255,255,255,0) 5%
-  );
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.2) 2%,
+      rgba(255, 255, 255, 0) 5%);
 
   pointer-events: none;
 }
@@ -92,4 +91,55 @@
 .labels {
   font-weight: bold;
   margin: 10px;
+}
+
+.selectedBiomeName {
+  font-size: 12px;
+}
+
+.toolTypesWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+
+.basedBiomeArea {
+  height: 60px;
+  flex: 0 0 60%;
+}
+
+.biomeVariationsArea {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px;
+}
+
+.basedBiomeIcons {
+  padding-right: 5%;
+  padding-left: 5%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.basedBiomeIcons input {
+  border: 2px solid gray;
+  border-radius: 5px;
+  width: 30px;
+  height: 30px;
+  justify-self: center;
+}
+
+.biomeVariationsArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.selectedBiomeName {
+  padding-top: 10px;
+  padding-bottom: 10px;
 }

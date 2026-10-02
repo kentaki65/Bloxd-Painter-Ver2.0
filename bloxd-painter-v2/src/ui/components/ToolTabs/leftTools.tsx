@@ -1,7 +1,8 @@
 import { useState } from "react"
 import TabButton from "../common/tabButton";
 import type { LeftTabTypes, TabProp, ToolId } from "../common/types";
-import { BiomeId } from "../../../core/types";
+import { BiomeId, biomeNameById, type BiomeName } from "../../../core/types";
+import { biomeBaseRelations, biomeRelations, getBiomeIcon } from "../../../core/constants";
 
 interface ToolDef {
   id: ToolId;
@@ -10,7 +11,7 @@ interface ToolDef {
 }
 
 interface BiomeLayerTabProp extends TabProp {
-  selectedBiome: string;
+  selectedBiome: BiomeId;
   onChangeBiome: (newBiome: BiomeId) => void;
 }
 
@@ -57,8 +58,6 @@ const tools: ToolDef[] = [
   }
 ]
 
-const biomes = Object.entries(BiomeId).filter((entry): entry is [string, BiomeId] => typeof entry[1] === "number");
-
 function ToolButton({ tool, isActive, onClick }: { tool: ToolDef; isActive: boolean; onClick: () => void }) {
   return (
     <button className={`Button ${isActive ? "active" : ""}`} title={tool.title} onClick={onClick}>
@@ -84,6 +83,14 @@ function TerrainTab({ name }: TabProp) {
 }
 
 function BiomeLayerTab({ name, selectedBiome, onChangeBiome }: BiomeLayerTabProp) {
+  const basedBiomes = Object.keys(biomeRelations) as BiomeName[];
+
+  const selectedName = biomeNameById[selectedBiome];
+
+  const base = biomeBaseRelations[selectedName];
+  const subBiomes = base ? biomeRelations[base] ?? [] : [];
+
+  //biomeの選択中バイオームをハイライトするように
   return (
     <>
       <div className="toolName">{name}</div>
@@ -91,8 +98,30 @@ function BiomeLayerTab({ name, selectedBiome, onChangeBiome }: BiomeLayerTabProp
         <div className="toolContent">
           <div className="toolTypes">
             <div className="toolTypesWrapper">
-              <div>selected biome: {selectedBiome}</div>
-              {biomes.map(([biomeName, id]) => <button key={biomeName} onClick={() => onChangeBiome(id)}>{biomeName}</button>)}
+              <div className="basedBiomeArea">
+                <div className="selectedBiomeName">
+                  selected biome: {selectedBiome}<br></br>{biomeNameById[selectedBiome]}
+                </div>
+                <div className="basedBiomeIcons">
+                  {basedBiomes.map((name) => {
+                    return <input key={`${name}`} type="image" src={getBiomeIcon(name)} onClick={() => onChangeBiome(BiomeId[name])} />
+                  })}
+                </div>
+              </div>
+              <div className="biomeVariationsArea">
+                <div>variations: </div>
+                {subBiomes.map((biomeName) => (
+                  <label key={biomeName}>
+                    <input
+                      type="radio"
+                      name={`variation-${name}`}
+                      checked={selectedName === biomeName}
+                      onChange={() => onChangeBiome(BiomeId[biomeName])}
+                    />
+                    {biomeName}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -117,7 +146,7 @@ function AdvancedSettingTab({ name }: TabProp) {
 
 export default function LeftTools({ selectedTool, selectedBiome, onChangeBiome, onChangeBrush }: {
   selectedTool: ToolId;
-  selectedBiome: string;
+  selectedBiome: BiomeId;
   onChangeBiome: (newBiome: BiomeId) => void;
   onChangeBrush: (newTool: ToolId) => void;
 }) {

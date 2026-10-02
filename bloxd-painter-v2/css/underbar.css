@@ -19,10 +19,17 @@
   overflow: hidden;
 }
 
-.underbar > .child {
-  flex: 0 0 auto;
-  padding: 0 8px;
+.underbar>.child {
+  width: fit-content;
+  min-width: 225px;
+  padding: 0 5px;
 
-  border-right: 1px solid gray;
+  display: flex;
+  gap: 10px;
+
   white-space: nowrap;
+
+  border-top: 2px solid gray;
+  border-left: 2px solid gray;
+  background-color: #E6E7E8;
 }
