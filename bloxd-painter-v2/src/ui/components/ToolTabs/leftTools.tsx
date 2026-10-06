@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import TabButton from "../common/tabButton";
 import type { LeftTabTypes, TabProp, ToolId } from "../common/types";
 import { BiomeId, biomeNameById, type BiomeName } from "../../../core/types";
@@ -14,10 +14,11 @@ interface BiomeLayerTabProp extends TabProp {
   selectedBiome: BiomeId;
   onChangeBiome: (newBiome: BiomeId) => void;
 }
+type ToolTypes = typeof tools[number]['id'];
 
 const tools: ToolDef[] = [
   {
-    id: "spray",
+    id: "biome",
     title: "spray paint: spray paint any terrain. layer or biome onto the world",
     icon: {
       type: "fontawesome",
@@ -48,15 +49,56 @@ const tools: ToolDef[] = [
       className: "ri-corner-right-down-fill"
     }
   },
-  {
-    id: "biome",
-    title: "",
-    icon: {
-      type: "fontawesome",
-      className: "fa-solid fa-layer-group"
-    }
-  }
-]
+] as const;
+
+const toolDescription: Record<ToolTypes, ReactNode> = {
+  "biome": (
+    <>
+      <ul>
+        <li>Left-click to splay paint the currently selected point on the indicated location</li>
+        <li>Right-click with a Layer selected to remove the layer</li>
+        <li>Right-click with a terrain selected to reset to the current theme</li>
+        <li>Right-click with a biome selected to reset to auto biome</li>
+      </ul>
+    </>
+  ),
+  "flatten": (
+    <>
+      <ul>
+        <li>click to flatten the surrounding to the level at location</li>
+      </ul>
+      <input id="flattenInput" type="checkbox" />
+      <label htmlFor="flattenInput">apply theme</label>
+    </>
+  ),
+  "height": (
+    <>
+      <ul>
+        <li>Left-Click to raise the terrain</li>
+        <li>Right-Click to lower the terrain</li>
+      </ul>
+      <input id="heightInput" type="checkbox" />
+      <label htmlFor="heightInput">apply theme</label>
+    </>
+  ),
+  "smooth": (
+    <>
+      <ul>
+        <li>click to smooth the terrain out</li>
+      </ul>
+      <input id="smoothInput" type="checkbox" />
+      <label htmlFor="smoothInput">apply theme</label>
+    </>
+  ),
+  "spray": (
+    <ul>
+      <li>Left-click to splay paint the currently selected point on the indicated location</li>
+      <li>Right-click with a Layer selected to remove the layer</li>
+      <li>Right-click with a terrain selected to reset to the current theme</li>
+      <li>Right-click with a biome selected to reset to auto biome</li>
+    </ul>
+  )
+}
 
 function ToolButton({ tool, isActive, onClick }: { tool: ToolDef; isActive: boolean; onClick: () => void }) {
   return (
@@ -104,7 +146,15 @@ function BiomeLayerTab({ name, selectedBiome, onChangeBiome }: BiomeLayerTabProp
                 </div>
                 <div className="basedBiomeIcons">
                   {basedBiomes.map((name) => {
-                    return <input key={`${name}`} type="image" src={getBiomeIcon(name)} onClick={() => onChangeBiome(BiomeId[name])} />
+                    return (
+                      <input
+                        key={`${name}`}
+                        type="image"
+                        className={selectedName === name ? "selectedBiomeFrame" : ""}
+                        src={getBiomeIcon(name)}
+                        onClick={() => onChangeBiome(BiomeId[name])}
+                      />
+                    )
                   })}
                 </div>
               </div>
@@ -166,7 +216,13 @@ export default function LeftTools({ selectedTool, selectedBiome, onChangeBiome, 
           <ToolButton key={tool.id} tool={tool} isActive={selectedTool === tool.id} onClick={() => handleChungeBrush(tool.id)} />
         ))}
       </div>
-
+      <div className="labels">tool Settings</div>
+      <div className="toolSettingUi">
+        <div className="selectedToolLabel">{selectedTool}</div>
+        <div className="selectedToolDescription">
+          {toolDescription[selectedTool]}
+        </div>
+      </div>
       <div className="toolBox">
         <div className="toolTabs">
           <TabButton
@@ -178,11 +234,6 @@ export default function LeftTools({ selectedTool, selectedBiome, onChangeBiome, 
             name="Biome"
             isActive={selectedTab === "biome"}
             onClick={() => handleChangeTab("biome")}
-          />
-          <TabButton
-            name="Advanced Settings"
-            isActive={selectedTab === "advanced"}
-            onClick={() => handleChangeTab("advanced")}
           />
         </div>
 

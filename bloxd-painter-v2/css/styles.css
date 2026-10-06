@@ -22,7 +22,7 @@ body {
 
 canvas {
   display: block;
-  background-color: aquamarine;
+  background-color: skyblue;
 }
 
 .screen {
@@ -43,35 +43,52 @@ canvas {
   padding: 5px;
   display: flex;
   flex-direction: column;
-  width: 200px;     
+  width: 200px;
   flex-shrink: 0;
-  border-right: 2px solid gray;   
-  border-left: 2px solid gray;     
+  border-right: 2px solid gray;
+  border-left: 2px solid gray;
 }
 
 .toolsColumn-right {
   padding: 5px;
   display: flex;
   flex-direction: column;
-  width: 215px;     
+  width: 215px;
   flex-shrink: 0;
-  border-right: 2px solid gray;   
-  border-left: 2px solid gray;  
+  border-right: 2px solid gray;
+  border-left: 2px solid gray;
 }
 
-.toolsUi, .blocksUI, .brushUI{
+.toolsUi,
+.blocksUI,
+.brushUI {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
   padding: 0 10px;
 }
 
-.layerUI, .settingWarpper {
+.toolSettingUi {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 200px;
+  padding-left: 10px;
+}
+
+.selectedToolDescription ul {
+  padding-left: 8px;
+  margin-left: 8px;
+  font-size: 12px;
+}
+
+.layerUI,
+.settingWarpper {
   padding: 0px 20px;
 }
 
 .Button {
-  flex: 0 0 calc(25% - 4px); 
+  flex: 0 0 calc(25% - 4px);
   height: 40px;
   display: flex;
   justify-content: center;
@@ -96,7 +113,7 @@ canvas {
   position: relative;
 }
 
-.viewer canvas{
+.viewer canvas {
   flex: 1;
   min-width: 0;
 }
@@ -126,4 +143,9 @@ canvas {
   text-align: center;
   cursor: pointer;
   z-index: 1;
+}
+
+.selectedToolLabel {
+  font-weight: bold;
+  font-size: 14px;
 }

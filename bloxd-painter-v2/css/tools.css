@@ -90,7 +90,8 @@
 
 .labels {
   font-weight: bold;
-  margin: 10px;
+  margin: 10px 0;
+  box-shadow: inset 0 -8px 8px -8px rgba(0, 0, 0, 0.5);
 }
 
 .selectedBiomeName {
@@ -142,4 +143,9 @@
 .selectedBiomeName {
   padding-top: 10px;
   padding-bottom: 10px;
+}
+
+.selectedBiomeFrame{
+  border: 2px dashed black !important;
+  background-color: lightblue;
 }

@@ -8,11 +8,11 @@ import type { WorldSettings } from "../ui/components/common/types";
 
 export function createGenerator(
   seed: string,
-  worldScale = 1,
+  cacheSizeMultiplier = 1,
   overrideBiome: BiomeOverrideLayer | null = null,
   overrideHeight: HeightOverrideLayer | null = null,
 ) {
-  return new WorldGenerator(chunkSize, blockMetadata, {}, seed, false, [], worldScale, null, overrideBiome, overrideHeight);
+  return new WorldGenerator(chunkSize, blockMetadata, {}, seed, false, [], cacheSizeMultiplier, null, overrideBiome, overrideHeight);
 }
 
 export function generateAndApplyChunk(

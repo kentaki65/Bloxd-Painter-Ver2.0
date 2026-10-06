@@ -1,0 +1,6 @@
+export const TILE_SIZE = 128;
+export enum OUT_OF_RUNGE_NUMBER {
+  NO_WATER_VALUE = -10000,
+  NO_CAVE_NUMBER = -10000,
+  OUT_OF_RANGE = -10000,
+}

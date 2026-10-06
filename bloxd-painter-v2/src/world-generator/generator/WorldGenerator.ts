@@ -509,17 +509,24 @@ export class WorldGenerator {
       return cachedChunkColumn;
     }
 
-    const closestBiomes = this.getClosestBiomesForChunk(chunkStartX, chunkStartZ);
 
+    //----テスト----
+    const p0 = performance.now();
+    const closestBiomes = this.getClosestBiomesForChunk(chunkStartX, chunkStartZ);
     const {
       nearestFixedPrefabInfoForChunk,
       decodedFixedPointPrefabsForChunk
-    } = this.fixedPointPrefabTracker.getFixedPointPrefabInfoForChunk(chunkStartX, chunkStartZ);
+    } = this.fixedPointPrefabTracker.getFixedPointPrefabInfoForChunk(chunkStartX, chunkStartZ);;
 
+    const p2 = performance.now();
     const heightmapVals = this.getHeightMapVals(chunkStartX, chunkStartZ, closestBiomes, nearestFixedPrefabInfoForChunk);
+    const p3 = performance.now();
+    //console.log("3つ", p3 - p0);
+    //console.log("only getHeightMapVals", p3 - p2);
+    //--------
+
     const caveHeightmapVals = this.caveGenerator.getCaveHeightmapVals(chunkStartX, chunkStartZ, heightmapVals);
     const chunkPrefabs = this.prefabGenerator.getPrefabsForChunk(chunkStartX, chunkStartZ, heightmapVals, closestBiomes, caveHeightmapVals, nearestFixedPrefabInfoForChunk);
-    //謎だよ
     const treesForChunk = this.treeGenerator.getTreesForChunk(chunkStartX, chunkStartZ, heightmapVals, closestBiomes, caveHeightmapVals, chunkPrefabs, nearestFixedPrefabInfoForChunk);
     const chunkOres = closestBiomes.getOrGenerate(
       chunkStartX + Math.floor(this.chunkSize / 2),
@@ -552,7 +559,7 @@ export class WorldGenerator {
     chunkStartX: number,
     chunkStartZ: number
   ) {
-    return ChunkGeneratorCache.create(this.chunkSize, [chunkStartX, chunkStartZ], this.biomeSelector);
+    return ChunkGeneratorCache.create(this.chunkSize, [chunkStartX, chunkStartZ], this.biomeSelector);;
   }
 
   getHeightMapVals(
@@ -571,5 +578,35 @@ export class WorldGenerator {
     );
 
     return ChunkDataCache3D.create(this.chunkSize, [chunkStartX, chunkStartZ], HeightField.NumFields, heightmapGenerator);
+  }
+
+
+  //---テスト---
+  benchBiomeSparse() {
+    const run = (base: number) => {
+      const t = performance.now();
+      for (let i = 0; i < 32; i++)
+        for (let j = 0; j < 32; j++)
+          this.biomeSelector.getBiome(base + i * 32, base + j * 32);
+      return performance.now() - t;
+    };
+    run(0); run(0); // ウォームアップ(捨てる)
+    console.log("sparse getBiome x1024:", run(1_000_000), run(2_000_000), run(3_000_000));
+  }
+
+  //---テスト---
+  benchScatteredHeight() {
+    const one = (cx: number, cz: number) => {
+      const t = performance.now();
+      const cb = this.getClosestBiomesForChunk(cx, cz);
+      const { nearestFixedPrefabInfoForChunk } =
+        this.fixedPointPrefabTracker.getFixedPointPrefabInfoForChunk(cx, cz);
+      this.getHeightMapVals(cx, cz, cb, nearestFixedPrefabInfoForChunk);
+      return performance.now() - t;
+    };
+    for (let i = 0; i < 50; i++) one(i * 32, 0); // ウォームアップ(隣り合う50個、捨てる)
+    const times: string[] = [];
+    for (let i = 0; i < 30; i++) times.push(one(100000 + i * 3200, 50000 + i * 3200).toFixed(2));
+    console.log("scattered chunk heights (ms):", times.join(" "));
   }
 }

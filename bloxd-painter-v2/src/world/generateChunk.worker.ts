@@ -6,7 +6,7 @@ import { chunkSize } from "../core/types";
 interface InitMessage {
   type: "init";
   seed: string;
-  worldScale?: number;
+  cacheSizeMultiplier?: number;
 }
 
 interface GenerateMessage {
@@ -24,7 +24,7 @@ let initialized = false;
 self.onmessage = (event: MessageEvent<WorkerMessage>) => {
   const data = event.data;
   if (data.type === "init") {
-    generator = createGenerator(data.seed, data.worldScale ?? 1);
+    generator = createGenerator(data.seed, data.cacheSizeMultiplier ?? 1);
     initialized = true;
   } else if (data.type === "generate") {
     if (initialized) {

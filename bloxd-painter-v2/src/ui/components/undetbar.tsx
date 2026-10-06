@@ -1,14 +1,23 @@
-import { BRUSH_RADIUS } from "../../core/types";
+import { BiomeId, biomeNameById } from "../../core/types";
 
-export default function UnderBar(){
+interface UnderBerState {
+  location: [number, number, number];
+  height: number;
+  slope: number;
+  biome: BiomeId;
+  radius: number;
+  zoom: number;
+}
+
+export default function UnderBar({location, height, slope, biome, radius, zoom}: UnderBerState){
   return (
     <div className="underbar">
-      <div className="child">location: </div>
-      <div className="child">height: </div>
-      <div className="child">slope: </div>
-      <div className="child">biome: </div>
-      <div className="child">radius: {BRUSH_RADIUS}</div>
-      <div className="child">zoom: </div>
+      <div className="child">location: {location.join(", ")}</div>
+      <div className="child">height: {height}</div>
+      <div className="child">slope: {slope}</div>
+      <div className="child">biome: {biomeNameById[biome]}</div>
+      <div className="child">radius: {radius}</div>
+      <div className="child">zoom: {zoom}</div>
     </div>
   )
 }
