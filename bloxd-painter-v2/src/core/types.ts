@@ -29,6 +29,33 @@ export const BiomeId = {
 export type BiomeName = keyof typeof BiomeId;
 export type BiomeId = typeof BiomeId[BiomeName];
 
+export interface WorldRect {
+  x0: number; 
+  x1: number;
+  z0: number;
+  z1: number;
+}
+
+export interface TileCoord {
+  step: number;
+  tx: number;
+  tz: number;
+}
+
+export interface CameraRef {
+  camX: number;
+  camY: number;
+  zoom: number;
+  panning: boolean;
+  panStartX: number;
+  panStartY: number;
+}
+
+export interface MouseRef {
+  x: number,
+  y: number,
+}
+
 export const biomeNameById = Object.fromEntries(
   Object.entries(BiomeId).map(([name, id]) => [id, name])
 ) as Record<BiomeId, BiomeName>;

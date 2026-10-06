@@ -1,3 +1,4 @@
+import type { TileCoord } from "../../core/types";
 import type { WorldGenerator } from "../../world-generator";
 import { createGenerator } from "../generateChunk";
 import { ColumnSampler } from "./ColumnSampler";
@@ -12,12 +13,6 @@ interface InitMessage {
 
 interface InitReadyMessage {
   type: "initReady"
-}
-
-interface TileCoord {
-  step: number;
-  tx: number;
-  tz: number;
 }
 
 interface TileRequest {
@@ -55,14 +50,12 @@ function sendResponse(data: WorkerResponse, transfer?: Transferable[]) {
 }
 
 async function pump() {
-  const requestId = currentRequestId;
-
   if (pumping) return;
   if (!generator || !sampler) {
     sendResponse({
       type: "error",
       message: "Either the generator or sampler hasn't been initialized",
-      requestId: requestId
+      requestId: currentRequestId
     })
     return;
   }
@@ -72,6 +65,7 @@ async function pump() {
   try {
     while (tileQueue.length > 0) {
       const firstTile = tileQueue.shift();
+      const requestId = currentRequestId;
       if (!firstTile) continue;
 
       const { ground, water, biomeId } = generateTile(sampler, firstTile.step, firstTile.tx, firstTile.tz);
@@ -88,7 +82,7 @@ async function pump() {
       await new Promise<void>(resolve => setTimeout(resolve));
     }
   } catch (e: any) {
-    sendResponse({ type: "error", message: e?.message ?? "error on tileGenerate", requestId })
+    sendResponse({ type: "error", message: e?.message ?? "error on tileGenerate", requestId: currentRequestId })
   } finally {
     pumping = false;
   }

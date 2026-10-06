@@ -11,10 +11,12 @@ import { BiomeOverrideLayer } from "../world/overrideLayers/BiomeOverrideLayer";
 import { createGenerator, generateChunksAsync } from "../world/generateChunk";
 import { applyHeightBrush } from "../brush/heightBrush";
 import { applyBiomeBrush } from "../brush/biomeBrush";
-import type { ToolId, WorldSettings } from "./components/common/types";
 import { BiomeId, BRUSH_RADIUS } from "../core/types";
+
 import type { WorkerResponse } from "../world/worker/Worker";
-import { OUT_OF_RUNGE_NUMBER } from "../world/worker/TileProtocol";
+import type { ToolId, WorldSettings } from "./components/common/types";
+import { TileCache, type TileData } from "./tiles/tileCache";
+import { buildTileRequest } from "./tiles/viewport";
 
 const CHUNK_Y_START = -32;
 
@@ -43,52 +45,57 @@ export function App() {
       setIsReady(true);
     })
 
-    const worker = new Worker(new URL("../world/worker/Worker.ts", import.meta.url), { type: "module"});
+    const worker = new Worker(new URL("../world/worker/Worker.ts", import.meta.url), { type: "module" });
+    let sentSecond = false;
+
     worker.onmessage = (msg) => {
       const res = msg.data as WorkerResponse;
 
-      if(res.type === "initReady"){
-        console.log("worker has been initialized");
-        worker.postMessage({type: "tileRequest", requestId: 10, step: 16, tiles: [{tx: 0, tz: -200}]});
-      }else if(res.type === "tile"){
-        let maxHeight = -Infinity;
-        let minHeight = Infinity;
-        let waterCount = 0;
-        const biomeCount: Record<number, number> = {};
-
-        for(const height of res.ground){
-          if(height > maxHeight) maxHeight = height;
-          if(height < minHeight) minHeight = height;
-        }
-
-        for(const water of res.water){
-          if(water !== OUT_OF_RUNGE_NUMBER.NO_WATER_VALUE){
-            waterCount++;
-          }
-        }
-
-        for(const biome of res.biomeId){
-          if(biomeCount[biome] === undefined) biomeCount[biome] = 0;
-          biomeCount[biome]++;
-        }
-
-        console.log({
-          groundLen: res.ground.byteLength,
-          waterLen: res.water.byteLength,
-          biomeLen: res.biomeId.byteLength,
-          groundMaxHeight: maxHeight,
-          groundMinHeight: minHeight,
-          waterCount, 
-          biomeCount
+      if (res.type === "initReady") {
+        worker.postMessage({
+          type: "tileRequest",
+          requestId: 1,
+          tiles: Array.from({ length: 20 }, (_, i) => ({ step: 1, tx: i, tz: 0 })),
         });
-        return worker.terminate();
-      }else if(res.type === "error"){
-        throw new Error(res.message)
+      } else if (res.type === "tile") {
+        //console.log(`tile requestId=${res.requestId} step=${res.step} tx=${res.tx} tz=${res.tz}`);
+
+        if (!sentSecond) {
+          sentSecond = true;
+          worker.postMessage({
+            type: "tileRequest",
+            requestId: 2,
+            tiles: [
+              { step: 1, tx: 100, tz: 0 },
+              { step: 1, tx: 101, tz: 0 },
+            ],
+          });
+
+          //---テストゾーン---///
+          const makeTile = (): TileData => ({
+            ground: new Int16Array(16384),
+            water: new Int16Array(16384),
+            biomeId: new Uint8Array(16384),
+          });
+
+          const cache = new TileCache();
+          const rect = { x0: -864, x1: 64, z0: -64, z1: 664 };
+
+          const req = buildTileRequest(rect, 1, cache);
+          console.log(req.length, req[0], req[4]);
+
+          cache.set(16, -1, 0, makeTile());
+          const req2 = buildTileRequest(rect, 1, cache);
+          console.log(req2.length, req2[0]);
+
+        }
+      } else if (res.type === "error") {
+        console.error(res.message, res.requestId);
       }
-    }
+    };
 
-    worker.postMessage({type: "init", seed: "1", maxHeight: 5});
-
+    worker.postMessage({ type: "init", seed: "1", maxHeight: 5 });
+    return () => worker.terminate();
   }, [world])
 
   function handlePaint(x: number, z: number) {

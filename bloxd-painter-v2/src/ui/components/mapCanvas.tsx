@@ -1,28 +1,15 @@
 import React, { useRef, useEffect } from "react";
 import { VoxelWorld } from "../../world/VoxelWorld";
 import { renderTopDown, renderTopDownPartial } from "../../render/renderTop";
-import { BRUSH_RADIUS, chunkSize } from "../../core/types";
+import { BRUSH_RADIUS, chunkSize, type CameraRef, type MouseRef } from "../../core/types";
 import { canvasToWorldX, worldToCanvasX } from "../../core/utils";
+import { expandRange, getTileRange } from "../tiles/viewport";
 import type { WorldSettings } from "./common/types";
 
 interface Props {
   world: VoxelWorld;
   worldInfo: WorldSettings;
   onPaint: (worldX: number, worldZ: number) => void;
-}
-
-interface CameraRef {
-  camX: number;
-  camY: number;
-  zoom: number;
-  panning: boolean;
-  panStartX: number;
-  panStartY: number;
-}
-
-interface MouseRef {
-  x: number,
-  y: number,
 }
 
 function drawScreen(
@@ -124,7 +111,6 @@ export function MapCanvas({ world, worldInfo, onPaint }: Props) {
       redrawCanvas(canvasCtx, offScreenCanvas, cameraRef.current, mouseRef.current)
     });
     observer.observe(canvas);
-
     return () => observer.disconnect()
   }, [])
 
@@ -194,10 +180,16 @@ export function MapCanvas({ world, worldInfo, onPaint }: Props) {
   function handleWheel(e: React.WheelEvent<HTMLCanvasElement>) {
     if (e.shiftKey) {
       cameraRef.current.zoom += e.deltaY > 0 ? -0.1 : 0.1;
-      cameraRef.current.zoom = Math.max(0.05, Math.min(2, cameraRef.current.zoom));
+      cameraRef.current.zoom = Math.max(0.1, Math.min(4, cameraRef.current.zoom));
       const canvas = canvasRef.current!;
       const canvasCtx = canvas.getContext("2d")!;
       const offCanvas = offscreenCanvas.current!;
+
+      const rect = { x0: -864, x1: 64, z0: -64, z1: 664 };
+      for (const step of [1, 4, 16]) {
+        const r = getTileRange(rect, step);
+        console.log(step, r, expandRange(r).length);
+      }
 
       if (offCanvas) {
         redrawCanvas(canvasCtx, offCanvas, cameraRef.current, mouseRef.current);
