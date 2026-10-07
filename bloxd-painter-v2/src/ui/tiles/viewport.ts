@@ -1,5 +1,5 @@
 
-import { TILE_SIZE } from "../../world/worker/TileProtocol";
+import { TILE_SIZE } from "../../core/TileProtocol";
 import type { TileCache } from "./tileCache";
 import type { WorldRect, TileCoord, CameraRef } from "../../core/types";
 

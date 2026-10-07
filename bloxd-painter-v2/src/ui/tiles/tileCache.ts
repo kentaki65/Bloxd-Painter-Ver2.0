@@ -5,6 +5,7 @@ export interface TileData {
   ground: Int16Array<ArrayBuffer>;
   water: Int16Array<ArrayBuffer>;
   biomeId: Uint8Array<ArrayBuffer>;
+  image: OffscreenCanvas;
 }
 
 export function tileKey(step: number, tx: number, tz: number): string {

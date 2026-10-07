@@ -18,7 +18,7 @@ interface StoneType {
   frequency: number;
 }
 
-interface BiomeEntry {
+export interface BiomeEntry {
   biome: Biome;
   frequency: number;
   altBiome: Biome | null;

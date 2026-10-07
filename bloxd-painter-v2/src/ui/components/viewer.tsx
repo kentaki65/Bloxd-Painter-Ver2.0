@@ -4,6 +4,7 @@ import { MapCanvas } from "./mapCanvas";
 import RightTools from "./ToolTabs/rightTools";
 import type { ToolId, WorldSettings } from "./common/types";
 import type { BiomeId } from "../../core/types";
+import { TileCanvas } from "./TileCanvas";
 
 interface Props {
   world: VoxelWorld;
@@ -17,6 +18,7 @@ interface Props {
   onChangeBrush: (newTool: ToolId) => void;
 }
 
+/* <MapCanvas world={world} worldInfo={worldInfo} onPaint={onPaint}/> */
 export default function Viewer({world, worldInfo, selectedTool, selectedBiome, onPaint, onChangeBiome, onChangeBrush}: Props) {
   return (
     <div className="viewer">
@@ -26,7 +28,7 @@ export default function Viewer({world, worldInfo, selectedTool, selectedBiome, o
         onChangeBiome={onChangeBiome}
         onChangeBrush={onChangeBrush}
       />
-      <MapCanvas world={world} worldInfo={worldInfo} onPaint={onPaint}/>
+      <TileCanvas />
       <RightTools />
     </div>
   )

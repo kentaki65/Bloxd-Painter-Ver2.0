@@ -6,6 +6,7 @@ export const blockColors: Record<number, string> = {
   5: "#DBC98F",        // Sand
   28: "#8A8A8A",        // Stone
   126: "#7976B9",
+  139: "#89E7FF",
   650: "#C56321",
   1629: "#E5F5FF",
   1955: "#2A9E19"

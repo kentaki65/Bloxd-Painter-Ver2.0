@@ -1,5 +1,5 @@
 import type { ColumnSample, ColumnSampler } from "./ColumnSampler";
-import { TILE_SIZE } from "./TileProtocol";
+import { TILE_SIZE } from "../../core/TileProtocol";
 
 export function generateTile(sampler: ColumnSampler, steps: number, tx: number, tz: number) {
   const out: ColumnSample = { ground: 0, water: 0, biomeId: 0 };

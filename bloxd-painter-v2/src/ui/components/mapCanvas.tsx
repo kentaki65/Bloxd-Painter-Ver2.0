@@ -185,12 +185,6 @@ export function MapCanvas({ world, worldInfo, onPaint }: Props) {
       const canvasCtx = canvas.getContext("2d")!;
       const offCanvas = offscreenCanvas.current!;
 
-      const rect = { x0: -864, x1: 64, z0: -64, z1: 664 };
-      for (const step of [1, 4, 16]) {
-        const r = getTileRange(rect, step);
-        console.log(step, r, expandRange(r).length);
-      }
-
       if (offCanvas) {
         redrawCanvas(canvasCtx, offCanvas, cameraRef.current, mouseRef.current);
       }

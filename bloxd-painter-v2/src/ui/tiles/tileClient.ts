@@ -2,6 +2,8 @@
 import type { WorldRect } from "../../core/types";
 import type { WorkerResponse } from "../../world/worker/Worker";
 import { TileCache } from "./tileCache";
+import { buildPalettes, type BiomePalette } from "./tileColor";
+import { createTileImage } from "./tileImage";
 import { getTileRange, buildTileRequest } from "./viewport";
 
 export class TileClient {
@@ -13,10 +15,11 @@ export class TileClient {
   private requestId = 0;
   private lastSignature = "";
   private pending: { rect: WorldRect; step: number } | null = null;
+  private palettes: BiomePalette[] = []
 
   constructor(seed: string, maxHeight: number, onTile: () => void) {
     this.onTile = onTile;
-    this.worker = new Worker(new URL("../world/worker/Worker.ts", import.meta.url), {
+    this.worker = new Worker(new URL("../../world/worker/Worker.ts", import.meta.url), {
       type: "module",
     });
     this.worker.onmessage = (e: MessageEvent<WorkerResponse>) => this.handle(e.data);
@@ -47,6 +50,8 @@ export class TileClient {
     switch (res.type) {
       case "initReady": {
         this.ready = true;
+        this.palettes = buildPalettes(res.biomeSurfaces);
+
         if (this.pending) {
           const p = this.pending;
           this.pending = null;
@@ -55,10 +60,12 @@ export class TileClient {
         break;
       }
       case "tile": {
+        const image = createTileImage(res, this.palettes);
         this.cache.set(res.step, res.tx, res.tz, {
           ground: res.ground,
           water: res.water,
           biomeId: res.biomeId,
+          image: image,
         });
         this.onTile();
         break;

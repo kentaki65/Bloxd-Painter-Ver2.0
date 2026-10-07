@@ -4,6 +4,11 @@ import { createGenerator } from "../generateChunk";
 import { ColumnSampler } from "./ColumnSampler";
 import { generateTile } from "./GenerateTile";
 
+export interface BiomeSurface {
+  topsoil: number;   // 地表のブロックID
+  topwater: number;  // 水の下の地面のブロックID
+}
+
 interface InitMessage {
   type: "init";
   seed: string;
@@ -12,7 +17,8 @@ interface InitMessage {
 }
 
 interface InitReadyMessage {
-  type: "initReady"
+  type: "initReady";
+  biomeSurfaces: BiomeSurface[];
 }
 
 interface TileRequest {
@@ -97,7 +103,11 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
 
       //ダミー
       generateTile(sampler, 4, 0, 0);
-      sendResponse({ type: "initReady" })
+      const biomeSurfaces = generator.biomeSelector.biomeEntries.map((e) => ({
+        topsoil: e.biome.topsoilBlockType,
+        topwater: e.biome.topwaterBlockType,
+      }));
+      sendResponse({ type: "initReady", biomeSurfaces });
     } catch (e: any) {
       sendResponse({ type: "error", message: e?.message ?? "error on init" })
     }
@@ -110,7 +120,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
       })
       return;
     }
-    
+
     currentRequestId = data.requestId;
     tileQueue = [...data.tiles];
     pump();
