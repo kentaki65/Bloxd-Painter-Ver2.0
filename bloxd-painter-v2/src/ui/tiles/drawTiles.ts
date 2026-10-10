@@ -1,6 +1,6 @@
 // drawTiles.ts
 import { TILE_SIZE } from "../../core/TileProtocol";
-import type { TileCache } from "./tileCache";
+import type { TileClient } from "./tileClient";
 import {
   STEPS,
   chooseStep,
@@ -11,7 +11,7 @@ import {
 
 export function drawTiles(
   ctx: CanvasRenderingContext2D,
-  cache: TileCache,
+  client: TileClient,
   camera: Camera,
   canvasWidth: number,
   canvasHeight: number,
@@ -33,8 +33,8 @@ export function drawTiles(
 
     for (let tz = r.tzMin; tz <= r.tzMax; tz++) {
       for (let tx = r.txMin; tx <= r.txMax; tx++) {
-        const tile = cache.get(step, tx, tz);
-        if (!tile) continue;
+        const image = client.getImage(step, tx, tz);
+        if (!image) continue;
 
         // 画面の x は camX - ワールドの x × zoom(左右反転)
         const left = camX - (tx + 1) * size * zoom;
@@ -45,7 +45,7 @@ export function drawTiles(
         // 端を整数にそろえて、隣のタイルとの隙間・重なりを防ぐ
         const x0 = Math.round(left);
         const y0 = Math.round(top);
-        ctx.drawImage(tile.image, x0, y0, Math.round(right) - x0, Math.round(bottom) - y0);
+        ctx.drawImage(image, x0, y0, Math.round(right) - x0, Math.round(bottom) - y0);
       }
     }
   }

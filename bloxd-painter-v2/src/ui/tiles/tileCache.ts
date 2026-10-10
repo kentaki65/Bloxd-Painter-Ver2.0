@@ -6,6 +6,9 @@ export interface TileData {
   water: Int16Array<ArrayBuffer>;
   biomeId: Uint8Array<ArrayBuffer>;
   image: OffscreenCanvas;
+  missing: number;
+  groundBlock?: Uint16Array;
+  renderedVersion: number; // この絵を描いたときの RenderState.version
 }
 
 export function tileKey(step: number, tx: number, tz: number): string {

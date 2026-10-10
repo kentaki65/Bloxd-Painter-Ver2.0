@@ -3,13 +3,15 @@ import { useEffect, useRef } from "react";
 import { chooseStep, getVisibleWorldRect, type Camera } from "../tiles/viewport";
 import { drawTiles } from "../tiles/drawTiles";
 import { TileClient } from "../tiles/tileClient";
+import type { RenderSettings } from "../tiles/renderSettings";
 
 const MARGIN = 64; // 2チャンクぶん
 const MIN_ZOOM = 0.05;
 const MAX_ZOOM = 2;
 
-export function TileCanvas() {
+export function TileCanvas({renderSetting}: {renderSetting: RenderSettings}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const clientRef = useRef<TileClient | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -22,11 +24,14 @@ export function TileCanvas() {
       scheduled = true;
       requestAnimationFrame(() => {
         scheduled = false;
-        drawTiles(ctx, client.cache, camera, canvas.width, canvas.height);
+        drawTiles(ctx, client, camera, canvas.width, canvas.height);
       });
     };
 
-    const client = new TileClient("vast_ridge_755876", 5, schedule);
+    //vast_ridge_755876
+    const client = new TileClient("ケンタキの建築鯖1", 5, schedule);
+    clientRef.current = client;
+    client.setRender(renderSetting);
 
     // カメラが動いたら、必ずこれを呼ぶ
     const onCameraChanged = () => {
@@ -41,11 +46,14 @@ export function TileCanvas() {
     let lastY = 0;
 
     const onPointerDown = (e: PointerEvent) => {
-      dragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      canvas.setPointerCapture(e.pointerId);
+      if(e.button === 1){
+        dragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        canvas.setPointerCapture(e.pointerId);        
+      }
     };
+
     const onPointerMove = (e: PointerEvent) => {
       if (!dragging) return;
       camera.camX += e.clientX - lastX;
@@ -54,31 +62,32 @@ export function TileCanvas() {
       lastY = e.clientY;
       onCameraChanged();
     };
+
     const onPointerUp = () => {
       dragging = false;
     };
 
-    // --- ズーム(カーソルの下を固定) ---
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const rectEl = canvas.getBoundingClientRect();
       const px = e.clientX - rectEl.left;
       const py = e.clientY - rectEl.top;
 
-      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-      const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, camera.zoom * factor));
-      const ratio = next / camera.zoom;
+      if(e.ctrlKey){
+        const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+        const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, camera.zoom * factor));
+        const ratio = next / camera.zoom;
 
-      camera.camX = px + (camera.camX - px) * ratio;
-      camera.camY = py + (camera.camY - py) * ratio;
-      camera.zoom = next;
-      onCameraChanged();
+        camera.camX = px + (camera.camX - px) * ratio;
+        camera.camY = py + (camera.camY - py) * ratio;
+        camera.zoom = next;
+        onCameraChanged();        
+      }
     };
 
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointermove", onPointerMove);
     canvas.addEventListener("pointerup", onPointerUp);
-    // preventDefault を効かせるため passive: false
     canvas.addEventListener("wheel", onWheel, { passive: false });
 
     onCameraChanged();
@@ -89,8 +98,15 @@ export function TileCanvas() {
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("wheel", onWheel);
+      clientRef.current = null;
     };
   }, []);
 
-  return <canvas ref={canvasRef} width={800} height={600} style={{ touchAction: "none" }} />;
+  useEffect(() => {
+    clientRef.current?.setRender(renderSetting);
+  }, [renderSetting]);
+  
+  return (
+    <canvas ref={canvasRef} width={800} height={600} style={{ touchAction: "none" }} />
+  )
 }

@@ -7,7 +7,6 @@ export type Camera = Omit<CameraRef, "panning" | "panStartX" | "panStartY">
 export const STEPS = [1, 2, 4, 8, 16] as const;
 
 export function chooseStep(zoom: number): number {
-  console.log(zoom);
   let step = 1; // どれも満たさないとき(ズームが大きいとき)は 1
   for (const s of STEPS) {
     if (s * zoom <= 1 + 1e-9) step = s;

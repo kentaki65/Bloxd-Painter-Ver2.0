@@ -73,3 +73,30 @@
   padding: 1px 4px;
   border-radius: 3px;
 }
+
+.settingContent {
+  margin-bottom: 10px;
+}
+
+.labelNameWrapper {
+  margin: 10px;
+}
+
+.SettingContentWrapper {
+  margin-right: 30px;
+  margin-left: 30px;
+}
+
+.disabledInput {
+  opacity: 0.8;
+  color: gray;
+}
+
+#countorDistance {
+  width: 50px;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}

@@ -19,6 +19,7 @@ interface InitMessage {
 interface InitReadyMessage {
   type: "initReady";
   biomeSurfaces: BiomeSurface[];
+  waterBlockId: number;
 }
 
 interface TileRequest {
@@ -27,12 +28,13 @@ interface TileRequest {
   tiles: TileCoord[]
 }
 
-interface TileMessage extends TileCoord {
+export interface TileMessage extends TileCoord {
   type: "tile",
   requestId: number;
   ground: Int16Array<ArrayBuffer>;
   water: Int16Array<ArrayBuffer>;
   biomeId: Uint8Array<ArrayBuffer>;
+  groundBlock?: Uint16Array<ArrayBuffer>
 }
 
 interface ErrorMessage {
@@ -107,7 +109,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
         topsoil: e.biome.topsoilBlockType,
         topwater: e.biome.topwaterBlockType,
       }));
-      sendResponse({ type: "initReady", biomeSurfaces });
+      sendResponse({ type: "initReady", biomeSurfaces, waterBlockId: generator.chunkGenerator.waterId });
     } catch (e: any) {
       sendResponse({ type: "error", message: e?.message ?? "error on init" })
     }

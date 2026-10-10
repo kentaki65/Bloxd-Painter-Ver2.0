@@ -1,25 +1,22 @@
-import type { VoxelWorld } from "../../world/VoxelWorld";
 import LeftTools from "./ToolTabs/leftTools";
-import { MapCanvas } from "./mapCanvas";
 import RightTools from "./ToolTabs/rightTools";
-import type { ToolId, WorldSettings } from "./common/types";
+import type { ToolId } from "./common/types";
 import type { BiomeId } from "../../core/types";
 import { TileCanvas } from "./TileCanvas";
+import type { RenderSettings } from "../tiles/renderSettings";
 
-interface Props {
-  world: VoxelWorld;
-  worldInfo: WorldSettings;
+interface ViewerProps {
   selectedTool: ToolId;
   selectedBiome: BiomeId;
 
-  onPaint: (worldX: number, worldZ: number) => void;
+  renderSettings: RenderSettings;
 
   onChangeBiome: (newBiome: BiomeId) => void;
   onChangeBrush: (newTool: ToolId) => void;
 }
 
 /* <MapCanvas world={world} worldInfo={worldInfo} onPaint={onPaint}/> */
-export default function Viewer({world, worldInfo, selectedTool, selectedBiome, onPaint, onChangeBiome, onChangeBrush}: Props) {
+export default function Viewer({selectedTool, selectedBiome, renderSettings, onChangeBiome, onChangeBrush}: ViewerProps) {
   return (
     <div className="viewer">
       <LeftTools 
@@ -28,7 +25,7 @@ export default function Viewer({world, worldInfo, selectedTool, selectedBiome, o
         onChangeBiome={onChangeBiome}
         onChangeBrush={onChangeBrush}
       />
-      <TileCanvas />
+      <TileCanvas renderSetting={renderSettings}/>
       <RightTools />
     </div>
   )

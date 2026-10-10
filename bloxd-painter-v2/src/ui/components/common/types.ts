@@ -14,3 +14,9 @@ export interface WorldSettings {
   chunkZ: number;
   chunkY: number;
 }
+
+export interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (settings: WorldSettings) => void;
+}
