@@ -1,7 +1,7 @@
 import LeftTools from "./ToolTabs/leftTools";
 import RightTools from "./ToolTabs/rightTools";
 import type { ToolId } from "./common/types";
-import type { BiomeId } from "../../core/types";
+import { BRUSH_RADIUS, type BiomeId } from "../../core/types";
 import { TileCanvas } from "./TileCanvas";
 import type { RenderSettings } from "../tiles/renderSettings";
 
@@ -15,17 +15,25 @@ interface ViewerProps {
   onChangeBrush: (newTool: ToolId) => void;
 }
 
-/* <MapCanvas world={world} worldInfo={worldInfo} onPaint={onPaint}/> */
-export default function Viewer({selectedTool, selectedBiome, renderSettings, onChangeBiome, onChangeBrush}: ViewerProps) {
+export default function Viewer({ selectedTool, selectedBiome, renderSettings, onChangeBiome, onChangeBrush }: ViewerProps) {
+  console.log(selectedTool)
   return (
     <div className="viewer">
-      <LeftTools 
-        selectedTool={selectedTool} 
+      <LeftTools
+        selectedTool={selectedTool}
         selectedBiome={selectedBiome}
         onChangeBiome={onChangeBiome}
         onChangeBrush={onChangeBrush}
       />
-      <TileCanvas renderSetting={renderSettings}/>
+      <TileCanvas
+        renderSetting={renderSettings}
+        brush={{
+          mode: selectedTool === "height" || selectedTool === "biome" ? selectedTool : "none",
+          height: 15,
+          biomeId: selectedBiome,
+          radius: BRUSH_RADIUS,
+        }}
+      />
       <RightTools />
     </div>
   )

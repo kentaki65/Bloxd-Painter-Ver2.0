@@ -9,6 +9,8 @@ export interface TileData {
   missing: number;
   groundBlock?: Uint16Array;
   renderedVersion: number; // この絵を描いたときの RenderState.version
+  epoch: number;
+  dirtyEpoch: number;
 }
 
 export function tileKey(step: number, tx: number, tz: number): string {
@@ -24,7 +26,7 @@ export class TileCache {
   constructor(maxBytes = DEFAULT_MAX_BYTES) {
     this.cache = new LRUCache<string, TileData>({
       maxSize: maxBytes,
-      sizeCalculation: (t) => t.ground.byteLength + t.water.byteLength + t.biomeId.byteLength,
+      sizeCalculation: (t) => t.ground.byteLength + t.water.byteLength + t.biomeId.byteLength + (t.groundBlock?.byteLength ?? 0),
     });
   }
 
@@ -40,5 +42,14 @@ export class TileCache {
 
   set(step: number, tx: number, tz: number, data: TileData): void {
     this.cache.set(tileKey(step, tx, tz), data);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  isFresh(step: number, tx: number, tz: number): boolean {
+    const t = this.cache.peek(tileKey(step, tx, tz));
+    return !!t && t.epoch >= t.dirtyEpoch;
   }
 }

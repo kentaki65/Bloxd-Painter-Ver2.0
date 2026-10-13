@@ -511,19 +511,13 @@ export class WorldGenerator {
 
 
     //----テスト----
-    const p0 = performance.now();
     const closestBiomes = this.getClosestBiomesForChunk(chunkStartX, chunkStartZ);
     const {
       nearestFixedPrefabInfoForChunk,
       decodedFixedPointPrefabsForChunk
     } = this.fixedPointPrefabTracker.getFixedPointPrefabInfoForChunk(chunkStartX, chunkStartZ);;
 
-    const p2 = performance.now();
     const heightmapVals = this.getHeightMapVals(chunkStartX, chunkStartZ, closestBiomes, nearestFixedPrefabInfoForChunk);
-    const p3 = performance.now();
-    //console.log("3つ", p3 - p0);
-    //console.log("only getHeightMapVals", p3 - p2);
-    //--------
 
     const caveHeightmapVals = this.caveGenerator.getCaveHeightmapVals(chunkStartX, chunkStartZ, heightmapVals);
     const chunkPrefabs = this.prefabGenerator.getPrefabsForChunk(chunkStartX, chunkStartZ, heightmapVals, closestBiomes, caveHeightmapVals, nearestFixedPrefabInfoForChunk);

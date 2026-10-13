@@ -25,6 +25,8 @@ class ColumnStore {
 }
 
 export class ColumnSampler {
+  biomeAffectsHeight = false;
+
   private current: BiomeGenerateResult[] = [];
   private store = new ColumnStore();
   private heightGen: HeightmapGenerator;
@@ -47,10 +49,21 @@ export class ColumnSampler {
   }
 
   sample(x: number, z: number, out: ColumnSample): void {
-    this.current = this.gen.biomeSelector.generate(x, z);
+    const sel = this.gen.biomeSelector;
+    const ov = sel.overrideLayer?.get(x, z);
+
+    let displayId: number;
+    if (ov !== undefined && !this.biomeAffectsHeight) {
+      this.current = sel.generate(x, z, false); // 高さ用: 上書きなし
+      displayId = ov;                           // 表示用: 上書きのバイオーム
+    } else {
+      this.current = sel.generate(x, z);
+      displayId = this.current[0]!.biomeId;
+    }
+
     this.heightGen.generateAndSet(x, z, this.store as unknown as HeightStore);
     out.ground = this.store.ground;
     out.water = this.store.water;
-    out.biomeId = this.current[0]!.biomeId;
+    out.biomeId = displayId;
   }
 }

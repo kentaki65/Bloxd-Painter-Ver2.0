@@ -119,9 +119,11 @@ export class BiomeSelector {
 
   generate(
     worldX: number,
-    worldZ: number
+    worldZ: number,
+    useOverride = true
   ): BiomeGenerateResult[] {
-    const overrideBiomeId = this.overrideLayer?.get(worldX, worldZ);
+    const overrideBiomeId = useOverride ? this.overrideLayer?.get(worldX, worldZ) : undefined;
+
     if (overrideBiomeId !== undefined) {
       const biome = this.getBiomeFromId(overrideBiomeId);
       return [{
@@ -166,7 +168,7 @@ export class BiomeSelector {
     if (overrideBiomeId !== undefined) {
       return { biome: this.getBiomeFromId(overrideBiomeId), biomeId: overrideBiomeId };
     }
-    
+
     const offsetX = this.getBiomeXOffset(worldX, worldZ);
     const offsetZ = this.getBiomeZOffset(worldX, worldZ);
     const closestPoint = this.biomePointGen.getClosestPoint(worldX + offsetX, worldZ + offsetZ);

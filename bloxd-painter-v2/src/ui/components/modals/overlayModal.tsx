@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Modal from "./common/modal";
-import type { WorldSettings } from "./common/types";
+import type { WorldSettings } from "../common/types";
+import Modal from "../common/modal";
 
 interface ModalProps {
   isOpen: boolean;

@@ -1,12 +1,60 @@
-import type { TileCoord } from "../../core/types";
+import type { BiomeId, TileCoord } from "../../core/types";
+import { patchTile } from "../../ui/tiles/patchTile";
 import type { WorldGenerator } from "../../world-generator";
 import { createGenerator } from "../generateChunk";
+import { BiomeOverrideLayer } from "../overrideLayers/BiomeOverrideLayer";
+import { HeightOverrideLayer } from "../overrideLayers/HeightOverrideLayer";
 import { ColumnSampler } from "./ColumnSampler";
 import { generateTile } from "./GenerateTile";
 
 export interface BiomeSurface {
   topsoil: number;   // 地表のブロックID
-  topwater: number;  // 水の下の地面のブロックID
+  topwater: number;  // 水面のブロックID
+}
+
+export interface HeightEdit {
+  x: number;
+  z: number;
+  value: number | null; // null = 上書きを消す
+}
+
+export interface BiomeEdit {
+  x: number;
+  z: number;
+  value: BiomeId | null; // null = 上書きを消す
+}
+
+interface SetOptionsMessage {
+  type: "setOptions";
+  epoch: number;
+  biomeAffectsHeight: boolean;
+}
+
+interface EditMessage {
+  type: "edit";
+  epoch: number;
+  height: HeightEdit[];
+  biome: BiomeEdit[];
+  rect: { x0: number; x1: number; z0: number; z1: number }; // x1, z1 は含まない
+  targets: { step: number; tx: number; tz: number }[];
+}
+
+export interface TilePatchMessage {
+  type: "tilePatch";
+  epoch: number;
+  step: number;
+  tx: number;
+  tz: number;
+  indices: Uint16Array<ArrayBuffer>;
+  ground: Int16Array<ArrayBuffer>;
+  water: Int16Array<ArrayBuffer>;
+  biomeId: Uint8Array<ArrayBuffer>;
+  groundBlock: Uint16Array<ArrayBuffer>;
+}
+
+interface EditAppliedMessage {
+  type: "editApplied";
+  epoch: number;
 }
 
 interface InitMessage {
@@ -31,6 +79,7 @@ interface TileRequest {
 export interface TileMessage extends TileCoord {
   type: "tile",
   requestId: number;
+  epoch: number;
   ground: Int16Array<ArrayBuffer>;
   water: Int16Array<ArrayBuffer>;
   biomeId: Uint8Array<ArrayBuffer>;
@@ -43,11 +92,14 @@ interface ErrorMessage {
   requestId?: number;
 };
 
-type WorkerMessage = InitMessage | TileRequest;
-export type WorkerResponse = InitReadyMessage | TileMessage | ErrorMessage;
+type WorkerMessage = InitMessage | TileRequest | EditMessage | SetOptionsMessage;
+export type WorkerResponse = InitReadyMessage | TileMessage | EditAppliedMessage | ErrorMessage | TilePatchMessage;
 
 let generator: WorldGenerator | null = null;
 let sampler: ColumnSampler | null = null;
+let heightLayer: HeightOverrideLayer | null = null;
+let biomeLayer: BiomeOverrideLayer | null = null;
+let appliedEpoch = 0;
 
 let tileQueue: TileCoord[] = [];
 let currentRequestId = 0;
@@ -76,16 +128,20 @@ async function pump() {
       const requestId = currentRequestId;
       if (!firstTile) continue;
 
-      const { ground, water, biomeId } = generateTile(sampler, firstTile.step, firstTile.tx, firstTile.tz);
+      const { ground, water, biomeId, groundBlock } = generateTile(
+        sampler, generator, firstTile.step, firstTile.tx, firstTile.tz,
+      );
 
       sendResponse({
         type: "tile",
         requestId: requestId,
+        epoch: appliedEpoch,
         step: firstTile.step,
         tx: firstTile.tx,
         tz: firstTile.tz,
-        ground, water, biomeId
-      }, [ground.buffer, water.buffer, biomeId.buffer])
+        ground, water, biomeId, groundBlock,
+      }, [ground.buffer, water.buffer, biomeId.buffer, groundBlock.buffer]);
+      generateTile(sampler, generator, 4, 0, 0);
 
       await new Promise<void>(resolve => setTimeout(resolve));
     }
@@ -100,15 +156,20 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
   const data = event.data;
   if (data.type === "init") {
     try {
-      generator = createGenerator(data.seed, data.cacheSizeMultiplier ?? 1);
+      heightLayer = new HeightOverrideLayer();
+      biomeLayer = new BiomeOverrideLayer();
+      appliedEpoch = 0;
+      generator = createGenerator(data.seed, data.cacheSizeMultiplier ?? 1, biomeLayer, heightLayer);
       sampler = new ColumnSampler(generator);
 
       //ダミー
-      generateTile(sampler, 4, 0, 0);
+      generateTile(sampler, generator, 4, 0, 0);
+
       const biomeSurfaces = generator.biomeSelector.biomeEntries.map((e) => ({
         topsoil: e.biome.topsoilBlockType,
         topwater: e.biome.topwaterBlockType,
       }));
+
       sendResponse({ type: "initReady", biomeSurfaces, waterBlockId: generator.chunkGenerator.waterId });
     } catch (e: any) {
       sendResponse({ type: "error", message: e?.message ?? "error on init" })
@@ -126,5 +187,35 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
     currentRequestId = data.requestId;
     tileQueue = [...data.tiles];
     pump();
+  } else if (data.type === "edit") {
+    if (!heightLayer || !sampler || !generator) {
+      sendResponse({ type: "error", message: "edit before init" });
+      return;
+    }
+
+    for (const e of data.height) {
+      if (e.value === null) heightLayer.clear(e.x, e.z);
+      else heightLayer.set(e.x, e.z, e.value);
+    }
+
+    for (const e of data.biome) {
+      if (e.value === null) biomeLayer!.clear(e.x, e.z);
+      else biomeLayer!.set(e.x, e.z, e.value);
+    }
+
+    appliedEpoch = data.epoch;
+
+    for (const t of data.targets) {
+      const p = patchTile(sampler, generator, t.step, t.tx, t.tz, data.rect, data.epoch);
+      if (!p) continue;
+
+      sendResponse(p, [p.indices.buffer, p.ground.buffer, p.water.buffer, p.biomeId.buffer, p.groundBlock.buffer]);
+    }
+    sendResponse({ type: "editApplied", epoch: data.epoch });
+  } else if (data.type === "setOptions") {
+    if (!sampler) return;
+    sampler.biomeAffectsHeight = data.biomeAffectsHeight;
+    appliedEpoch = data.epoch;
+    sendResponse({ type: "editApplied", epoch: data.epoch });
   }
 }

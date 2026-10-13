@@ -30,7 +30,6 @@ export function buildPalettes(surfaces: BiomeSurface[]): BiomePalette[] {
   }));
 }
 
-// 1サンプルの色を out に書く(毎回、新しい配列を作らないため)
 export function colorAt(p: BiomePalette, ground: number, water: number, out: RGB): void {
   if (water === OUT_OF_RUNGE_NUMBER.NO_WATER_VALUE) {
     out[0] = p.land[0];
@@ -38,7 +37,7 @@ export function colorAt(p: BiomePalette, ground: number, water: number, out: RGB
     out[2] = p.land[2];
     return;
   }
-  // 水の深さが深いほど、青を濃くする(深さ16以上で一定)
+
   const depth = water - ground;
   const a = 0.4 + 0.5 * Math.min(Math.max(depth, 0) / 16, 1);
   out[0] = Math.round(p.seabed[0] * (1 - a) + WATER_RGB[0] * a);

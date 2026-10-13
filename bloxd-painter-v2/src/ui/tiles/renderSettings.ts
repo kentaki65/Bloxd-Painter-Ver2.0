@@ -1,14 +1,15 @@
 export type ColorMode = "biome" | "block";
 
 interface ContorsOverrideSettings {
-  contourInterval: number | null;
-  contorsIntervalOverride: boolean;
+  countorsInterval: number;
+  countorsIntervalOverride: boolean;
 }
 
 export interface RenderSettings {
   mode: ColorMode;
   shading: boolean;
   contours: boolean;
+  modifyHeight: boolean;
   countorsOverride: ContorsOverrideSettings;
 }
 
@@ -16,9 +17,10 @@ export const DEFAULT_SETTINGS: RenderSettings = {
   mode: "biome",
   shading: true,
   contours: true,
+  modifyHeight: false,
   countorsOverride: {
-    contorsIntervalOverride: false,
-    contourInterval: null
+    countorsIntervalOverride: false,
+    countorsInterval: 10
   }
 };
 

@@ -10,10 +10,15 @@ export class HeightOverrideLayer {
   }
 
   get(x: number, z: number): number | undefined {
+    if (this.map.size === 0) return undefined;
     return this.map.get(this.key(x, z));
   }
 
   has(x: number, z: number): boolean {
     return this.map.has(this.key(x, z));
+  }
+
+  clear(x: number, z: number): void {
+    this.map.delete(this.key(x, z));
   }
 }

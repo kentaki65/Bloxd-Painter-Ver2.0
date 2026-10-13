@@ -1,11 +1,19 @@
 import type { ColumnSample, ColumnSampler } from "./ColumnSampler";
 import { TILE_SIZE } from "../../core/TileProtocol";
+import type { WorldGenerator } from "../../world-generator";
+import { getGroundBlockId } from "../../ui/tiles/groundBlock";
 
-export function generateTile(sampler: ColumnSampler, steps: number, tx: number, tz: number) {
+export function generateTile(
+  sampler: ColumnSampler,
+  generator: WorldGenerator,
+  steps: number, 
+  tx: number, tz: number
+) {
   const out: ColumnSample = { ground: 0, water: 0, biomeId: 0 };
   const ground = new Int16Array(TILE_SIZE * TILE_SIZE);
   const water = new Int16Array(TILE_SIZE * TILE_SIZE);
   const biomeId = new Uint8Array(TILE_SIZE * TILE_SIZE);
+  const groundBlock = new Uint16Array(TILE_SIZE * TILE_SIZE);
 
   //左上の座標
   //x or z * tilesize * steps
@@ -25,8 +33,9 @@ export function generateTile(sampler: ColumnSampler, steps: number, tx: number, 
       ground[index] = out.ground;
       water[index] = out.water;
       biomeId[index] = out.biomeId;
+      groundBlock[index] = getGroundBlockId(generator, out.biomeId, x, z, out.ground, out.water); // 追加
     }
   }
 
-  return { ground, water, biomeId };
+  return { ground, water, biomeId, groundBlock };
 }

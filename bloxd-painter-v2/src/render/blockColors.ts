@@ -15,6 +15,7 @@ export const blockColors: Record<number, string> = {
 };
 
 export function getColor(blockId: number): string {
+  //return "#FFFDF5";
   //return blockColors[4];
   return blockColors[blockId] ?? "#FF00FF";
 }

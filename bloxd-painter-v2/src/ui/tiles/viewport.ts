@@ -88,7 +88,7 @@ export function buildTileRequest(
 
     // 範囲 → 一覧 → キャッシュにないものだけ
     const missing = expandRange(getTileRange(rect, step)).filter(
-      (t) => !cache.has(t.step, t.tx, t.tz),
+      (t) => !cache.isFresh(t.step, t.tx, t.tz),
     );
 
     // 画面の中心に近い順
@@ -103,4 +103,20 @@ export function buildTileRequest(
   }
 
   return result;
+}
+
+export function screenToWorld(camera: Camera, px: number, py: number) {
+  return {
+    x: Math.floor((camera.camX - px) / camera.zoom),
+    z: Math.floor((py - camera.camY) / camera.zoom),
+  };
+}
+
+export function tileWorldRect(step: number, tx: number, tz: number): WorldRect {
+  const size = TILE_SIZE * step;
+  return { x0: tx * size, x1: (tx + 1) * size, z0: tz * size, z1: (tz + 1) * size };
+}
+
+export function rectsOverlap(a: WorldRect, b: WorldRect): boolean {
+  return a.x0 < b.x1 && b.x0 < a.x1 && a.z0 < b.z1 && b.z0 < a.z1;
 }

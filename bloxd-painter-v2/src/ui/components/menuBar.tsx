@@ -51,7 +51,7 @@ function ViewMenu({ isOpen, onClick, onOpenRenderSetting }: ViewMenuProps) {
       <div className="nameLabel" onClick={onClick}>view</div>
       {isOpen && (
         <div className="dropdownMenu">
-          <button type="button" className="dropdownButton" onClick={onOpenRenderSetting}>rendersetting</button>
+          <button type="button" className="dropdownButton" onClick={onOpenRenderSetting}>render setting</button>
         </div>
       )}
     </div>
@@ -62,7 +62,6 @@ export default function MenuBar({ onOpenCreateWorld, onOpenRenderSetting }: Menu
   const [selectedMenu, setMenu] = useState<MenuTypes | null>(null);
 
   function handleMenuClick(menu: MenuTypes) {
-    console.log("押された:", menu);
     setMenu(prev => prev === menu ? null : menu);
   }
 

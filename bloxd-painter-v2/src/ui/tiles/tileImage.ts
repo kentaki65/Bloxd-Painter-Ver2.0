@@ -7,7 +7,7 @@ import { colorAt, type BiomePalette, type RGB } from "./tileColor";
 const MISSING: BiomePalette = { land: [255, 0, 255], seabed: [255, 0, 255] };
 
 const CONTOUR_INTERVAL: Record<number, number> = { 1: 12, 2: 12, 4: 16, 8: 32, 16: 32 };
-const CONTOUR_DARKEN = 0.01;
+const CONTOUR_DARKEN = 0.001 ;
 
 // 隣のタイルが欠けている方向のビット
 export const EDGE_E = 1; // ワールド x+ 側(画面の左)
@@ -16,7 +16,7 @@ export const EDGE_N = 4; // ワールド z- 側(画面の上)
 export const EDGE_S = 8; // ワールド z+ 側(画面の下)
 
 // 陰影の調整値
-const SHADE_STRENGTH = 1;
+const SHADE_STRENGTH = 0.5;
 const SHADE_MIN = 0.8;
 const SHADE_MAX = 1.4;
 
@@ -79,8 +79,8 @@ export function renderTile(
     (nb.north ? 0 : EDGE_N) | (nb.south ? 0 : EDGE_S);
 
   let interval = CONTOUR_INTERVAL[step] ?? 32;
-  if(opts.settings.countorsOverride.contorsIntervalOverride) interval = opts.settings.countorsOverride.contourInterval!;
-
+  if(opts.settings.countorsOverride.countorsIntervalOverride) interval = opts.settings.countorsOverride.countorsInterval;
+  
   for (let dz = 0; dz < T; dz++) {
     for (let dx = 0; dx < T; dx++) {
       const i = dz * T + dx;
@@ -94,11 +94,15 @@ export function renderTile(
       if (useBlock) {
         const bed = blockColors.get(data.groundBlock![i]);
         if (!isWater) {
-          rgb[0] = bed[0]; rgb[1] = bed[1]; rgb[2] = bed[2];
+          rgb[0] = bed[0]; 
+          rgb[1] = bed[1]; 
+          rgb[2] = bed[2];
         } else if (surfaceIsWater[biomeId]) {
           blendWater(bed, water - ground, rgb);
         } else {
-          rgb[0] = palette.seabed[0]; rgb[1] = palette.seabed[1]; rgb[2] = palette.seabed[2];
+          rgb[0] = palette.seabed[0]; 
+          rgb[1] = palette.seabed[1]; 
+          rgb[2] = palette.seabed[2];
         }
       } else {
         colorAt(palette, ground, water, rgb);
@@ -133,9 +137,9 @@ export function renderTile(
 
       }
 
-      const sx = T - 1 - dx; // 左右反転して書く
+      const sx = T - 1 - dx;
       const o = (dz * T + sx) * 4;
-      px[o] = rgb[0] * m;     // Uint8ClampedArray なので、はみ出しは自動で丸められる
+      px[o] = rgb[0] * m;
       px[o + 1] = rgb[1] * m;
       px[o + 2] = rgb[2] * m;
       px[o + 3] = 255;
