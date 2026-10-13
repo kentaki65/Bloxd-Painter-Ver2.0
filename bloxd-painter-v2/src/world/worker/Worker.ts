@@ -1,4 +1,5 @@
 import type { BiomeId, TileCoord } from "../../core/types";
+import { EditHistory } from "../../ui/tiles/history/editHisotry";
 import { patchTile } from "../../ui/tiles/patchTile";
 import type { WorldGenerator } from "../../world-generator";
 import { createGenerator } from "../generateChunk";
@@ -6,6 +7,9 @@ import { BiomeOverrideLayer } from "../overrideLayers/BiomeOverrideLayer";
 import { HeightOverrideLayer } from "../overrideLayers/HeightOverrideLayer";
 import { ColumnSampler } from "./ColumnSampler";
 import { generateTile } from "./GenerateTile";
+
+interface EditRect { x0: number; x1: number; z0: number; z1: number }
+interface TileTarget { step: number; tx: number; tz: number }
 
 export interface BiomeSurface {
   topsoil: number;   // 地表のブロックID
@@ -33,10 +37,19 @@ interface SetOptionsMessage {
 interface EditMessage {
   type: "edit";
   epoch: number;
+  strokeId: number;
   height: HeightEdit[];
   biome: BiomeEdit[];
   rect: { x0: number; x1: number; z0: number; z1: number }; // x1, z1 は含まない
   targets: { step: number; tx: number; tz: number }[];
+}
+
+interface HistoryMessage {
+  type: "undo" | "redo";
+  epoch: number;
+  strokeId: number;
+  rect: EditRect;
+  targets: TileTarget[];
 }
 
 export interface TilePatchMessage {
@@ -92,13 +105,14 @@ interface ErrorMessage {
   requestId?: number;
 };
 
-type WorkerMessage = InitMessage | TileRequest | EditMessage | SetOptionsMessage;
+type WorkerMessage = InitMessage | TileRequest | EditMessage | SetOptionsMessage | HistoryMessage;
 export type WorkerResponse = InitReadyMessage | TileMessage | EditAppliedMessage | ErrorMessage | TilePatchMessage;
 
 let generator: WorldGenerator | null = null;
 let sampler: ColumnSampler | null = null;
 let heightLayer: HeightOverrideLayer | null = null;
 let biomeLayer: BiomeOverrideLayer | null = null;
+let history = new EditHistory();
 let appliedEpoch = 0;
 
 let tileQueue: TileCoord[] = [];
@@ -107,6 +121,15 @@ let pumping = false;
 
 function sendResponse(data: WorkerResponse, transfer?: Transferable[]) {
   self.postMessage(data, { transfer });
+}
+
+function sendPatches(epoch: number, rect: EditRect, targets: TileTarget[]) {
+  for (const t of targets) {
+    const p = patchTile(sampler!, generator!, t.step, t.tx, t.tz, rect, epoch);
+    if (!p) continue;
+    sendResponse(p, [p.indices.buffer, p.ground.buffer, p.water.buffer, p.biomeId.buffer, p.groundBlock.buffer]);
+  }
+  sendResponse({ type: "editApplied", epoch });
 }
 
 async function pump() {
@@ -161,6 +184,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
       appliedEpoch = 0;
       generator = createGenerator(data.seed, data.cacheSizeMultiplier ?? 1, biomeLayer, heightLayer);
       sampler = new ColumnSampler(generator);
+      history = new EditHistory();
 
       //ダミー
       generateTile(sampler, generator, 4, 0, 0);
@@ -188,30 +212,31 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
     tileQueue = [...data.tiles];
     pump();
   } else if (data.type === "edit") {
-    if (!heightLayer || !sampler || !generator) {
+    if (!heightLayer || !biomeLayer || !sampler || !generator) {
       sendResponse({ type: "error", message: "edit before init" });
       return;
     }
-
+    const stroke = history.begin(data.strokeId);
     for (const e of data.height) {
+      stroke.h.add(e.x, e.z, heightLayer.get(e.x, e.z)); // 変える前に記録
       if (e.value === null) heightLayer.clear(e.x, e.z);
       else heightLayer.set(e.x, e.z, e.value);
     }
-
     for (const e of data.biome) {
-      if (e.value === null) biomeLayer!.clear(e.x, e.z);
-      else biomeLayer!.set(e.x, e.z, e.value);
+      stroke.b.add(e.x, e.z, biomeLayer.get(e.x, e.z));
+      if (e.value === null) biomeLayer.clear(e.x, e.z);
+      else biomeLayer.set(e.x, e.z, e.value);
     }
-
     appliedEpoch = data.epoch;
-
-    for (const t of data.targets) {
-      const p = patchTile(sampler, generator, t.step, t.tx, t.tz, data.rect, data.epoch);
-      if (!p) continue;
-
-      sendResponse(p, [p.indices.buffer, p.ground.buffer, p.water.buffer, p.biomeId.buffer, p.groundBlock.buffer]);
+    sendPatches(data.epoch, data.rect, data.targets);
+  } else if (data.type === "undo" || data.type === "redo") {
+    if (!heightLayer || !biomeLayer || !sampler || !generator) {
+      sendResponse({ type: "error", message: "history before init" });
+      return;
     }
-    sendResponse({ type: "editApplied", epoch: data.epoch });
+    history.revert(data.type, data.strokeId, heightLayer, biomeLayer);
+    appliedEpoch = data.epoch;
+    sendPatches(data.epoch, data.rect, data.targets);
   } else if (data.type === "setOptions") {
     if (!sampler) return;
     sampler.biomeAffectsHeight = data.biomeAffectsHeight;

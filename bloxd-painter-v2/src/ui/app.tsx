@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import MenuBar from "./components/menuBar";
 import UnderBar from "./components/undetbar";
@@ -12,8 +12,11 @@ import {
   DEFAULT_SETTINGS,
   type RenderSettings,
 } from "./tiles/renderSettings";
+import type { TileCanvasApi } from "./components/TileCanvas";
 
 export function App() {
+  const canvasApi = useRef<TileCanvasApi | null>(null);
+
   const [settings, setSettings] = useState<RenderSettings>(DEFAULT_SETTINGS);
 
   const [brushMode, setBrushMode] = useState<ToolId>("height");
@@ -35,6 +38,7 @@ export function App() {
         onChangeBrush={setBrushMode}
         selectedTool={brushMode}
         selectedBiome={biomeType}
+        canvasApi={canvasApi}
       />
 
       <UnderBar

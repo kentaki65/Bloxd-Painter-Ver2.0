@@ -7,6 +7,7 @@ import { getTileRange, buildTileRequest, STEPS, tileWorldRect, rectsOverlap } fr
 import { renderTile, EDGE_E, EDGE_W, EDGE_N, EDGE_S, type Neighbors, type RenderOptions } from "./tileImage";
 import { RenderState, type RenderSettings } from "./renderSettings";
 import { BlockColorTable } from "./blockColorTable";
+import { MAX_HISTORY } from "./history/historyLimit";
 
 export class TileClient {
   readonly cache = new TileCache();
@@ -30,6 +31,10 @@ export class TileClient {
 
   private rerender = new Map<string, { step: number; tx: number; tz: number }>();
   private needReissue = false;
+
+  private undoStack: { id: number; rect: WorldRect }[] = [];
+  private redoStack: { id: number; rect: WorldRect }[] = [];
+  private strokeCounter = 0;
 
   get busy(): boolean {
     return this.pendingEdits.length > 0;
@@ -181,20 +186,53 @@ export class TileClient {
     this.worker.postMessage({ type: "init", seed, maxHeight });
   }
 
-  edit(edits: { height?: HeightEdit[]; biome?: BiomeEdit[] }, rect: WorldRect) {
+  edit(edits: { height?: HeightEdit[]; biome?: BiomeEdit[] }, rect: WorldRect, strokeId: number) {
     if (!this.ready) return;
+
+    // 履歴(ワーカーと同じ規則)
+    const top = this.undoStack[this.undoStack.length - 1];
+    if (top && top.id === strokeId) {
+      top.rect = {
+        x0: Math.min(top.rect.x0, rect.x0), x1: Math.max(top.rect.x1, rect.x1),
+        z0: Math.min(top.rect.z0, rect.z0), z1: Math.max(top.rect.z1, rect.z1),
+      };
+    } else {
+      this.undoStack.push({ id: strokeId, rect: { ...rect } });
+      this.redoStack.length = 0;
+      if (this.undoStack.length > MAX_HISTORY) this.undoStack.shift();
+    }
+
     const epoch = ++this.editEpoch;
     this.pendingEdits.push({ epoch, rect });
     const marked = this.markDirty(rect, epoch);
     const targets = marked.filter((t) => t.step === this.lastStep);
     this.worker.postMessage({
-      type: "edit",
-      epoch,
-      height: edits.height ?? [],
-      biome: edits.biome ?? [],
-      rect,
-      targets,
+      type: "edit", epoch, strokeId,
+      height: edits.height ?? [], biome: edits.biome ?? [],
+      rect, targets,
     });
+  }
+
+  beginStroke(): number {
+    return ++this.strokeCounter;
+  }
+  
+  undo() { this.applyHistory("undo"); }
+  redo() { this.applyHistory("redo"); }
+
+  private applyHistory(kind: "undo" | "redo") {
+    if (!this.ready) return;
+    const from = kind === "undo" ? this.undoStack : this.redoStack;
+    const to = kind === "undo" ? this.redoStack : this.undoStack;
+    const s = from.pop();
+    if (!s) return;
+    to.push(s);
+
+    const epoch = ++this.editEpoch;
+    this.pendingEdits.push({ epoch, rect: s.rect });
+    const marked = this.markDirty(s.rect, epoch);
+    const targets = marked.filter((t) => t.step === this.lastStep);
+    this.worker.postMessage({ type: kind, epoch, strokeId: s.id, rect: s.rect, targets });
   }
 
   update(rect: WorldRect, step: number): void {
@@ -218,6 +256,7 @@ export class TileClient {
   }
 
   setRender(next: RenderSettings) {
+    this.setBiomeAffectsHeight(next.modifyHeight);
     this.render.set(next);
     this.onTile(); // 再描画を予約
   }
@@ -236,7 +275,7 @@ export class TileClient {
     if (this.lastRect) this.update(this.lastRect, this.lastStep);
     this.onTile();
   }
-  
+
   refreshStale() {
     this.lastSignature = "";
     if (this.lastRect) this.update(this.lastRect, this.lastStep);

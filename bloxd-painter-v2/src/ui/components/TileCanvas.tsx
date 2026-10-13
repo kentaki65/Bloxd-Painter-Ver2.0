@@ -6,6 +6,11 @@ import { TileClient } from "../tiles/tileClient";
 import type { RenderSettings } from "../tiles/renderSettings";
 import type { BiomeEdit, HeightEdit } from "../../world/worker/Worker";
 
+export interface TileCanvasApi {
+  undo: () => void;
+  redo: () => void;
+}
+
 export interface BrushState {
   mode: "height" | "biome" | "none";
   height: number;
@@ -17,7 +22,7 @@ const MARGIN = 64; // 2チャンクぶん
 const MIN_ZOOM = 0.05;
 const MAX_ZOOM = 2;
 
-export function TileCanvas({ renderSetting, brush }: { renderSetting: RenderSettings, brush: BrushState }) {
+export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: RenderSettings, brush: BrushState, apiRef: React.MutableRefObject<TileCanvasApi | null> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const clientRef = useRef<TileClient | null>(null);
   const brushRef = useRef(brush);
@@ -69,7 +74,7 @@ export function TileCanvas({ renderSetting, brush }: { renderSetting: RenderSett
     //vast_ridge_755876
     const client = new TileClient("ケンタキの建築鯖1", 5, schedule);
     clientRef.current = client;
-    (window as any).tc = client;
+
     client.setRender(renderSetting);
 
     // カメラが動いたら、必ずこれを呼ぶ
@@ -77,6 +82,29 @@ export function TileCanvas({ renderSetting, brush }: { renderSetting: RenderSett
       const rect = getVisibleWorldRect(camera, canvas.width, canvas.height, MARGIN);
       client.update(rect, chooseStep(camera.zoom));
       schedule();
+    };
+
+    let strokeId = 0;
+
+    const tryHistory = (kind: "undo" | "redo") => {
+      // 塗っている最中や、送信待ちがあるときは、効かせない
+      if (painting || queue.length > 0 || client.busy) return;
+      if (kind === "undo") client.undo();
+      else client.redo();
+    };
+
+    if (apiRef) apiRef.current = { undo: () => tryHistory("undo"), redo: () => tryHistory("redo") };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const k = e.key.toLowerCase();
+      const isUndo = k === "z" && !e.shiftKey;
+      const isRedo = (k === "z" && e.shiftKey) || k === "y";
+      if (!isUndo && !isRedo) return;
+      e.preventDefault();
+      tryHistory(isUndo ? "undo" : "redo");
     };
 
     // --- ブラシ ---
@@ -131,7 +159,7 @@ export function TileCanvas({ renderSetting, brush }: { renderSetting: RenderSett
       }
       queue.length = 0;
       if (height.length === 0 && biome.length === 0) return;
-      client.edit({ height, biome }, { x0, x1: x1 + 1, z0, z1: z1 + 1 });
+      client.edit({ height, biome }, { x0, x1: x1 + 1, z0, z1: z1 + 1 }, strokeId);
     };
 
     // 前の位置から今の位置まで、隙間なく円を並べる
@@ -172,6 +200,7 @@ export function TileCanvas({ renderSetting, brush }: { renderSetting: RenderSett
         erase = e.shiftKey;
         last = null;
         painted.clear();
+        strokeId = client.beginStroke();
         canvas.setPointerCapture(e.pointerId);
         enqueueStroke(x, z);
       }
@@ -230,6 +259,7 @@ export function TileCanvas({ renderSetting, brush }: { renderSetting: RenderSett
     canvas.addEventListener("pointermove", onPointerMove);
     canvas.addEventListener("pointerup", onPointerUp);
     canvas.addEventListener("pointerleave", onPointerLeave)
+    window.addEventListener("keydown", onKeyDown);
     canvas.addEventListener("wheel", onWheel, { passive: false });
 
     onCameraChanged();
@@ -250,8 +280,11 @@ export function TileCanvas({ renderSetting, brush }: { renderSetting: RenderSett
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);
-      canvas.removeEventListener("pointerleave", onPointerLeave)
+      canvas.removeEventListener("pointerleave", onPointerLeave);
+      window.removeEventListener("keydown", onKeyDown);
       canvas.removeEventListener("wheel", onWheel);
+
+      apiRef.current = null
       clientRef.current = null;
     };
   }, []);
