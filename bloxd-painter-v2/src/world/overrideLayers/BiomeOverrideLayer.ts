@@ -23,4 +23,11 @@ export class BiomeOverrideLayer {
   has(x: number, z: number): boolean {
     return this.map.has(this.key(x, z));
   }
+
+  forEachColumn(fn: (x: number, z: number) => void): void {
+    for (const k of this.map.keys()) {
+      const i = k.indexOf(",");
+      fn(Number(k.slice(0, i)), Number(k.slice(i + 1)));
+    }
+  }
 }

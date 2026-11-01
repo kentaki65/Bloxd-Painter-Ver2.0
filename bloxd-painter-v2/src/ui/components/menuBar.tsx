@@ -8,6 +8,7 @@ interface MenuProps {
 
 interface FileMenuProps extends MenuProps {
   onOpenCreateWorld: () => void;
+  onOpenExport: () => void;
 }
 
 interface ViewMenuProps extends MenuProps {
@@ -17,16 +18,22 @@ interface ViewMenuProps extends MenuProps {
 interface MenuBarProps {
   onOpenCreateWorld: () => void;
   onOpenRenderSetting: () => void;
+  onOpenExport: () => void;
 }
 
-function FileMenu({ isOpen, onClick, onOpenCreateWorld }: FileMenuProps) {
+function FileMenu({ isOpen, onClick, onOpenCreateWorld, onOpenExport }: FileMenuProps) {
   return (
     <div className="option">
       <div className={`nameLabel ${isOpen ? "active" : ""}`} onClick={onClick}>file</div>
       {isOpen && (
-        <div className="dropdownMenu">
-          <button type="button" className="dropdownButton" onClick={onOpenCreateWorld}>new palette</button>
-        </div>
+        <>
+          <div className="dropdownMenu">
+            <button type="button" className="dropdownButton" onClick={onOpenCreateWorld}>new palette</button>
+          </div>
+          <div className="dropdownMenu">
+            <button type="button" className="dropdownButton" onClick={onOpenExport}>export</button>
+          </div>
+        </>
       )}
     </div>
   )
@@ -58,7 +65,7 @@ function ViewMenu({ isOpen, onClick, onOpenRenderSetting }: ViewMenuProps) {
   )
 }
 
-export default function MenuBar({ onOpenCreateWorld, onOpenRenderSetting }: MenuBarProps) {
+export default function MenuBar({ onOpenCreateWorld, onOpenRenderSetting, onOpenExport }: MenuBarProps) {
   const [selectedMenu, setMenu] = useState<MenuTypes | null>(null);
 
   function handleMenuClick(menu: MenuTypes) {
@@ -71,6 +78,7 @@ export default function MenuBar({ onOpenCreateWorld, onOpenRenderSetting }: Menu
         isOpen={selectedMenu === "file"}
         onClick={() => handleMenuClick("file")}
         onOpenCreateWorld={onOpenCreateWorld}
+        onOpenExport={onOpenExport}
       />
       <EditMenu isOpen={selectedMenu === "edit"} onClick={() => handleMenuClick("edit")} />
       <ViewMenu

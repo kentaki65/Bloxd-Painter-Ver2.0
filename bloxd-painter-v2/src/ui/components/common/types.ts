@@ -1,6 +1,6 @@
 export type LeftTabTypes = "terrain" | "biome" | "advanced";
 export type RightTabTypes = "brushes" | "options";
-export type ToolId = "spray" | "height" | "flatten" | "smooth" | "biome";
+export type ToolId = "none" | "height" | "flatten" | "smooth" | "biome";
 
 export type MenuTypes = "file" | "edit" | "view";
 export interface TabProp {

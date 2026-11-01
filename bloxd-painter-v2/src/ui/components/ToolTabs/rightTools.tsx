@@ -1,6 +1,7 @@
 import { useState } from "react";
 import TabButton from "../common/tabButton";
 import type { RightTabTypes, TabProp } from "../common/types";
+import BaseInput from "../common/input";
 
 interface RangeOption {
   enabled: boolean;
@@ -28,72 +29,55 @@ function BrushesTab({ name }: TabProp) {
   )
 }
 
-function SettingRange({ name, id, max, min, step, value, onChange }: {
-  name: string, id: string, min: number, max: number, step: number, value: number, onChange: (value: number) => void
-}) {
+function SettingRange(
+  { name, id, min, max, step, value, onChange }:
+    { name: string; id: string; min: number; max: number; step: number; value: number; onChange: (value: number) => void; }
+) {
   return (
     <div className="setting-group">
       <label htmlFor={id}>{name}</label>
-      <input
+      <BaseInput
         type="range"
         id={id}
         min={min}
         max={max}
         step={step}
         value={value}
-        onChange={(e) => { onChange(Number(e.target.value)) }}
+        onChange={onChange}
       />
     </div>
-  )
+  );
 }
 
-//name,id,min,max,value,onChange
-function SettingToggleNumber({ name, id, min, max, value, onChange }: {
-  name: string; id: string; min: number; max: number;
-  value: RangeOption;
-  onChange: (next: RangeOption) => void;
-}) {
+function SettingToggleNumber(
+  { name, id, min, max, value, onChange }:
+    { name: string; id: string; min: number; max: number; value: RangeOption; onChange: (next: RangeOption) => void; }
+) {
   return (
     <div className="setting-group">
-      <label htmlFor={id}>{name}</label>
-      <input
-        type="checkbox"
-        id={id}
-        checked={value.enabled}
-        onChange={(event) => onChange({ ...value, enabled: event.target.checked })}
-      />
-      <input
+      <label htmlFor={id}>
+        <BaseInput
+          type="checkbox"
+          id={id}
+          checked={value.enabled}
+          onChange={(enabled) => onChange({ ...value, enabled })}
+        />
+        {name}
+      </label>
+
+      <BaseInput
         type="number"
+        id={`${id}-value`}
         min={min}
         max={max}
         value={value.value}
-        onChange={(event) => onChange({ ...value, value: Number(event.target.value) })}
+        onChange={(nextValue) => onChange({ ...value, value: nextValue })}
       />
     </div>
-  )
+  );
 }
 
-//もっと分割できそう
-function OptionsTab({ name }: TabProp) {
-  const [brushOptions, setBrushOption] = useState<BrushOptions>({
-    intensity: 0.025,
-    atOrAbove: {
-      enabled: false,
-      value: 0
-    },
-    atOrBelow: {
-      enabled: false,
-      value: 255 //ワールドの最大高さ
-    },
-    slopeAbove: {
-      enabled: false,
-      value: 0,
-    },
-    slopeBelow: {
-      enabled: false,
-      value: 90
-    }
-  })
+function OptionsTab({ name, options, onChange }: TabProp & { options: BrushOptions; onChange: (o: BrushOptions) => void }) {
   return (
     <>
       <div className="toolName">{name}</div>
@@ -103,60 +87,61 @@ function OptionsTab({ name }: TabProp) {
             <SettingRange
               name="intensity" id="intensity"
               max={0.1} min={0.025} step={0.001}
-              value={brushOptions.intensity}
+              value={options.intensity}
               onChange={(newValue) => {
-                setBrushOption(prev => ({
-                  ...prev,
+                onChange({
+                  ...options,
                   intensity: newValue
-                }))
+                })
               }}
             />
 
             <SettingToggleNumber
               name="atOrAbove"
               id="atOrAbove"
-              min={0} max={255} value={brushOptions.atOrAbove}
+              min={0} max={255} 
+              value={options.atOrAbove}
               onChange={(newValue) => {
-                setBrushOption(prev => ({
-                  ...prev,
+                onChange({
+                  ...options,
                   atOrAbove: { ...newValue }
-                }))
+                })
               }}
             />
 
             <SettingToggleNumber
               name="atOrBelow"
               id="atOrBelow"
-              min={0} max={255} value={brushOptions.atOrBelow}
+              min={0} max={255} value={options.atOrBelow}
               onChange={(newValue) => {
-                setBrushOption(prev => ({
-                  ...prev,
+                onChange({
+                  ...options,
                   atOrBelow: { ...newValue }
-                }))
+                })
               }}
             />
 
             <SettingToggleNumber
               name="slopeAbove"
               id="slopeAbove"
-              min={0} max={255} value={brushOptions.slopeAbove}
+              min={0} max={90} value={options.slopeAbove}
               onChange={(newValue) => {
-                setBrushOption(prev => ({
-                  ...prev,
+                onChange({
+                  ...options,
                   slopeAbove: { ...newValue }
-                }))
+                })
               }}
             />
 
             <SettingToggleNumber
               name="slopeBelow"
               id="slopeBelow"
-              min={0} max={255} value={brushOptions.slopeBelow}
+              min={0} max={90} value={options.slopeBelow}
               onChange={(newValue) => {
-                setBrushOption(prev => ({
-                  ...prev,
+                onChange({
+                  ...options,
                   slopeBelow: { ...newValue }
-                }))
+                })
               }}
             />
           </div>
@@ -166,7 +151,7 @@ function OptionsTab({ name }: TabProp) {
   )
 }
 
-export default function RightTools() {
+export default function RightTools({ options, onChange }: { options: BrushOptions; onChange: (o: BrushOptions) => void }) {
   const [selectedTab, setTab] = useState<RightTabTypes>("brushes");
   const handleChangeTab = (newTab: RightTabTypes) => setTab(newTab);
 
@@ -187,7 +172,7 @@ export default function RightTools() {
         </div>
         <div className="toolColumn">
           {selectedTab === "brushes" && <BrushesTab name="brushes" />}
-          {selectedTab === "options" && <OptionsTab name="options" />}
+          {selectedTab === "options" && <OptionsTab name="options" options={options} onChange={onChange} />}
         </div>
       </div>
     </div>

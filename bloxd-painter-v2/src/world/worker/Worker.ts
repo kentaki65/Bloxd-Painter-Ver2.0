@@ -7,6 +7,8 @@ import { BiomeOverrideLayer } from "../overrideLayers/BiomeOverrideLayer";
 import { HeightOverrideLayer } from "../overrideLayers/HeightOverrideLayer";
 import { ColumnSampler } from "./ColumnSampler";
 import { generateTile } from "./GenerateTile";
+import { BrushEngine, type BrushStamps } from "./brushOps";
+import { columnBounds, runExport, type ExportChunkResponse, type ExportDoneResponse, type ExportInfoResponse } from "./export/exportSchem";
 
 interface EditRect { x0: number; x1: number; z0: number; z1: number }
 interface TileTarget { step: number; tx: number; tz: number }
@@ -26,6 +28,14 @@ export interface BiomeEdit {
   x: number;
   z: number;
   value: BiomeId | null; // null = 上書きを消す
+}
+
+interface BrushMessage extends BrushStamps {
+  type: "brush";
+  epoch: number;
+  strokeId: number;
+  rect: EditRect;
+  targets: TileTarget[];
 }
 
 interface SetOptionsMessage {
@@ -99,19 +109,32 @@ export interface TileMessage extends TileCoord {
   groundBlock?: Uint16Array<ArrayBuffer>
 }
 
+interface ExportInfoRequest { type: "exportInfo"; requestId: number }
+
+interface ExportRequest {
+  type: "export";
+  requestId: number;
+  margin: number;
+  yChunkStart: number; // チャンク番号
+  yChunkCount: number;
+}
+
 interface ErrorMessage {
   type: "error";
   message: string;
   requestId?: number;
 };
 
-type WorkerMessage = InitMessage | TileRequest | EditMessage | SetOptionsMessage | HistoryMessage;
-export type WorkerResponse = InitReadyMessage | TileMessage | EditAppliedMessage | ErrorMessage | TilePatchMessage;
+type WorkerMessage =
+  InitMessage | TileRequest | EditMessage | SetOptionsMessage | HistoryMessage | BrushMessage | ExportInfoRequest | ExportRequest;
+export type WorkerResponse =
+  InitReadyMessage | TileMessage | EditAppliedMessage | ErrorMessage | TilePatchMessage | ExportInfoResponse | ExportChunkResponse | ExportDoneResponse;
 
 let generator: WorldGenerator | null = null;
 let sampler: ColumnSampler | null = null;
 let heightLayer: HeightOverrideLayer | null = null;
 let biomeLayer: BiomeOverrideLayer | null = null;
+let brushEngine: BrushEngine | null = null;
 let history = new EditHistory();
 let appliedEpoch = 0;
 
@@ -177,6 +200,7 @@ async function pump() {
 
 self.onmessage = (event: MessageEvent<WorkerMessage>) => {
   const data = event.data;
+  console.log("[worker] recv", data.type);
   if (data.type === "init") {
     try {
       heightLayer = new HeightOverrideLayer();
@@ -184,6 +208,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
       appliedEpoch = 0;
       generator = createGenerator(data.seed, data.cacheSizeMultiplier ?? 1, biomeLayer, heightLayer);
       sampler = new ColumnSampler(generator);
+      brushEngine = new BrushEngine(sampler, heightLayer, biomeLayer);
       history = new EditHistory();
 
       //ダミー
@@ -235,12 +260,38 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
       return;
     }
     history.revert(data.type, data.strokeId, heightLayer, biomeLayer);
+    brushEngine?.clearCache();
     appliedEpoch = data.epoch;
     sendPatches(data.epoch, data.rect, data.targets);
   } else if (data.type === "setOptions") {
     if (!sampler) return;
     sampler.biomeAffectsHeight = data.biomeAffectsHeight;
+    brushEngine?.clearCache();
     appliedEpoch = data.epoch;
     sendResponse({ type: "editApplied", epoch: data.epoch });
+  } else if (data.type === "brush") {
+    if (!brushEngine || !sampler || !generator) {
+      sendResponse({ type: "error", message: "brush before init" });
+      return;
+    }
+    const stroke = history.begin(data.strokeId);
+    brushEngine.run(data, data.strokeId, stroke);
+    appliedEpoch = data.epoch;
+    sendPatches(data.epoch, data.rect, data.targets);
+  } else if (data.type === "exportInfo") {
+    if (!heightLayer || !biomeLayer) return;
+    const b = columnBounds(heightLayer, biomeLayer);
+    sendResponse({
+      type: "exportInfo",
+      requestId: data.requestId,
+      empty: b === null,
+      minCX: b?.minCX ?? 0, maxCX: b?.maxCX ?? 0, minCZ: b?.minCZ ?? 0, maxCZ: b?.maxCZ ?? 0,
+    });
+  } else if (data.type === "export") {
+    if (!generator || !heightLayer || !biomeLayer) {
+      sendResponse({ type: "error", message: "export before init", requestId: data.requestId });
+      return;
+    }
+    runExport(generator, heightLayer, biomeLayer, data, (msg, transfer) => sendResponse(msg, transfer));
   }
 }

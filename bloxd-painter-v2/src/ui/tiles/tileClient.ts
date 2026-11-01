@@ -8,6 +8,8 @@ import { renderTile, EDGE_E, EDGE_W, EDGE_N, EDGE_S, type Neighbors, type Render
 import { RenderState, type RenderSettings } from "./renderSettings";
 import { BlockColorTable } from "./blockColorTable";
 import { MAX_HISTORY } from "./history/historyLimit";
+import type { BrushStamps } from "../../world/worker/brushOps";
+import type { ExportChunkResponse, ExportInfoResponse } from "../../world/worker/export/exportSchem";
 
 export class TileClient {
   readonly cache = new TileCache();
@@ -35,6 +37,14 @@ export class TileClient {
   private undoStack: { id: number; rect: WorldRect }[] = [];
   private redoStack: { id: number; rect: WorldRect }[] = [];
   private strokeCounter = 0;
+
+  private reqCounter = 0;
+  private infoResolvers = new Map<number, (r: ExportInfoResponse) => void>();
+  private exportJobs = new Map<number, {
+    chunks: ExportChunkResponse[];
+    onProgress: (done: number, total: number) => void;
+    resolve: (c: ExportChunkResponse[]) => void;
+  }>();
 
   get busy(): boolean {
     return this.pendingEdits.length > 0;
@@ -137,6 +147,7 @@ export class TileClient {
   }
 
   private handle(res: WorkerResponse): void {
+    console.log("[client]", res.type);
     switch (res.type) {
       case "initReady": {
         this.ready = true;
@@ -169,6 +180,27 @@ export class TileClient {
         this.onTile();
         break;
       }
+      case "exportInfo": {
+        this.infoResolvers.get(res.requestId)?.(res);
+        this.infoResolvers.delete(res.requestId);
+        break;
+      }
+      case "exportChunk": {
+        const job = this.exportJobs.get(res.requestId);
+        if (job) {
+          job.chunks.push(res);
+          job.onProgress(res.done, res.total);
+        }
+        break;
+      }
+      case "exportDone": {
+        const job = this.exportJobs.get(res.requestId);
+        if (job) {
+          this.exportJobs.delete(res.requestId);
+          job.resolve(job.chunks);
+        }
+        break;
+      }
       case "error": {
         console.error(res.message, res.requestId);
         break;
@@ -189,18 +221,7 @@ export class TileClient {
   edit(edits: { height?: HeightEdit[]; biome?: BiomeEdit[] }, rect: WorldRect, strokeId: number) {
     if (!this.ready) return;
 
-    // 履歴(ワーカーと同じ規則)
-    const top = this.undoStack[this.undoStack.length - 1];
-    if (top && top.id === strokeId) {
-      top.rect = {
-        x0: Math.min(top.rect.x0, rect.x0), x1: Math.max(top.rect.x1, rect.x1),
-        z0: Math.min(top.rect.z0, rect.z0), z1: Math.max(top.rect.z1, rect.z1),
-      };
-    } else {
-      this.undoStack.push({ id: strokeId, rect: { ...rect } });
-      this.redoStack.length = 0;
-      if (this.undoStack.length > MAX_HISTORY) this.undoStack.shift();
-    }
+    this.recordStroke(strokeId, rect);
 
     const epoch = ++this.editEpoch;
     this.pendingEdits.push({ epoch, rect });
@@ -216,9 +237,33 @@ export class TileClient {
   beginStroke(): number {
     return ++this.strokeCounter;
   }
-  
+
   undo() { this.applyHistory("undo"); }
   redo() { this.applyHistory("redo"); }
+
+  private recordStroke(strokeId: number, rect: WorldRect) {
+    const top = this.undoStack[this.undoStack.length - 1];
+    if (top && top.id === strokeId) {
+      top.rect = {
+        x0: Math.min(top.rect.x0, rect.x0), x1: Math.max(top.rect.x1, rect.x1),
+        z0: Math.min(top.rect.z0, rect.z0), z1: Math.max(top.rect.z1, rect.z1),
+      };
+    } else {
+      this.undoStack.push({ id: strokeId, rect: { ...rect } });
+      this.redoStack.length = 0;
+      if (this.undoStack.length > MAX_HISTORY) this.undoStack.shift();
+    }
+  }
+
+  brush(p: BrushStamps, rect: WorldRect, strokeId: number) {
+    if (!this.ready) return;
+    this.recordStroke(strokeId, rect);
+    const epoch = ++this.editEpoch;
+    this.pendingEdits.push({ epoch, rect });
+    const marked = this.markDirty(rect, epoch);
+    const targets = marked.filter((t) => t.step === this.lastStep);
+    this.worker.postMessage({ type: "brush", ...p, epoch, strokeId, rect, targets });
+  }
 
   private applyHistory(kind: "undo" | "redo") {
     if (!this.ready) return;
@@ -279,6 +324,26 @@ export class TileClient {
   refreshStale() {
     this.lastSignature = "";
     if (this.lastRect) this.update(this.lastRect, this.lastStep);
+  }
+
+  exportInfo(): Promise<ExportInfoResponse> {
+    return new Promise((resolve) => {
+      const requestId = ++this.reqCounter;
+      this.infoResolvers.set(requestId, resolve);
+      console.log("[client] exportInfo post");
+      this.worker.postMessage({ type: "exportInfo", requestId });
+    });
+  }
+
+  exportChunks(
+    opts: { margin: number; yChunkStart: number; yChunkCount: number },
+    onProgress: (done: number, total: number) => void,
+  ): Promise<ExportChunkResponse[]> {
+    return new Promise((resolve) => {
+      const requestId = ++this.reqCounter;
+      this.exportJobs.set(requestId, { chunks: [], onProgress, resolve });
+      this.worker.postMessage({ type: "export", requestId, ...opts });
+    });
   }
 
   // 絵が古ければ、その場で描き直して返す

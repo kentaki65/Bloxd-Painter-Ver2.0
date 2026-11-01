@@ -464,6 +464,7 @@ export class WaterBodyGenerator {
     worldX: number,
     worldZ: number
   ) {
+    worldX; worldZ;
     return 100;
   }
 }

@@ -4,25 +4,58 @@ import { chooseStep, getVisibleWorldRect, screenToWorld, type Camera } from "../
 import { drawTiles } from "../tiles/drawTiles";
 import { TileClient } from "../tiles/tileClient";
 import type { RenderSettings } from "../tiles/renderSettings";
-import type { BiomeEdit, HeightEdit } from "../../world/worker/Worker";
+import type { BrushFilter, BrushOp } from "../../world/worker/brushOps";
+import type { ExportInfoResponse } from "../../world/worker/export/exportSchem";
 
 export interface TileCanvasApi {
   undo: () => void;
   redo: () => void;
+  exportInfo: () => Promise<ExportInfoResponse>;
+  exportChunks: TileClient["exportChunks"];
 }
 
 export interface BrushState {
-  mode: "height" | "biome" | "none";
-  height: number;
-  biomeId: number;
+  kind: "biome" | "height" | "flatten" | "smooth" | "none";
   radius: number;
+  biomeId: number;
+  intensity: number;
+  filter: BrushFilter;
 }
+
+const HEIGHT_PER_INTENSITY = 40; // raise/lower: 1回あたり、中心で intensity×40 ブロック
+const BLEND_PER_INTENSITY = 10;  // flatten/smooth: 1回あたり、混ぜる割合 intensity×10(最大1)
+const TICK_MS = 50;
+
+const MIN_RADIUS = 1;
+const MAX_RADIUS = 100; // 大きいと重くなるので、調整してください
 
 const MARGIN = 64; // 2チャンクぶん
 const MIN_ZOOM = 0.05;
-const MAX_ZOOM = 2;
+const MAX_ZOOM = 5;
 
-export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: RenderSettings, brush: BrushState, apiRef: React.MutableRefObject<TileCanvasApi | null> }) {
+function resolveOp(b: BrushState, button: number, shift: boolean): { op: BrushOp; amount: number; value: number } | null {
+  switch (b.kind) {
+    case "biome":
+      return button === 2
+        ? { op: "biomeReset", amount: 0, value: 0 }
+        : { op: "biome", amount: 0, value: b.biomeId };
+    case "height":
+      if (button === 0 && shift) return { op: "resetHeight", amount: 0, value: 0 };
+      return { op: button === 2 ? "lower" : "raise", amount: b.intensity * HEIGHT_PER_INTENSITY, value: 0 };
+    case "flatten":
+    case "smooth":
+      if (button !== 0) return null;
+      return { op: b.kind, amount: Math.min(1, b.intensity * BLEND_PER_INTENSITY), value: 0 };
+    default:
+      return null;
+  }
+}
+
+const idempotent = (op: BrushOp) => op === "biome" || op === "biomeReset" || op === "resetHeight" || op === "set";
+
+export function TileCanvas(
+  { renderSetting, brush, apiRef, onRadiusChange }:
+    { renderSetting: RenderSettings, brush: BrushState, apiRef: React.MutableRefObject<TileCanvasApi | null>, onRadiusChange?: (radius: number) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const clientRef = useRef<TileClient | null>(null);
   const brushRef = useRef(brush);
@@ -35,7 +68,7 @@ export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: Re
 
     const drawCursor = () => {
       const b = brushRef.current;
-      if (!mouse || b.mode === "none") return;
+      if (!mouse || b.kind === "none") return;
       const { x, z } = screenToWorld(camera, mouse.px, mouse.py);
       const cx = camera.camX - (x + 0.5) * camera.zoom;
       const cy = camera.camY + (z + 0.5) * camera.zoom;
@@ -84,16 +117,20 @@ export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: Re
       schedule();
     };
 
-    let strokeId = 0;
-
     const tryHistory = (kind: "undo" | "redo") => {
-      // 塗っている最中や、送信待ちがあるときは、効かせない
-      if (painting || queue.length > 0 || client.busy) return;
+      if (painting || client.busy) return;
       if (kind === "undo") client.undo();
       else client.redo();
     };
 
-    if (apiRef) apiRef.current = { undo: () => tryHistory("undo"), redo: () => tryHistory("redo") };
+    if (apiRef) {
+      apiRef.current = {
+        undo: () => tryHistory("undo"),
+        redo: () => tryHistory("redo"),
+        exportInfo: () => client.exportInfo(),
+        exportChunks: (o, p) => client.exportChunks(o, p),
+      };
+    }
 
     const onKeyDown = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
@@ -109,77 +146,56 @@ export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: Re
 
     // --- ブラシ ---
     let painting = false;
-    let erase = false;
-    let last: { x: number; z: number } | null = null;
-    const queue: { x: number; z: number }[] = [];
-    const painted = new Set<number>(); // このストロークで、送り済みの列
-    let flushScheduled = false;
+    let cur: { op: BrushOp; amount: number; value: number } | null = null;
+    let strokeId = 0;
+    let lastStamp: { x: number; z: number } | null = null;
+    let lastTick = 0;
+    let rafBrush = 0;
 
-    const keyOf = (x: number, z: number) => (x + 1048576) * 2097152 + (z + 1048576);
-
-    const flushQueue = () => {
+    const tick = () => {
       const b = brushRef.current;
-      if (queue.length === 0 || b.mode === "none") {
-        queue.length = 0;
-        flushScheduled = false;
-        return;
-      }
-      // 前の編集が終わるまで待つ(溜まった分は、まとめて送る)
-      if (client.busy) {
-        requestAnimationFrame(flushQueue);
-        return;
-      }
-      flushScheduled = false;
+      if (!painting || !cur || !mouse || b.kind === "none") return;
 
-      const r = b.radius;
-      const r2 = r * r;
-
-      const value = erase ? null : b.mode === "height" ? b.height : b.biomeId;
-      const height: HeightEdit[] = [];
-      const biome: BiomeEdit[] = [];
-
-      let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
-
-      for (const s of queue) {
-        for (let dz = -r; dz <= r; dz++) {
-          for (let dx = -r; dx <= r; dx++) {
-            if (dx * dx + dz * dz > r2) continue;
-            const px = s.x + dx;
-            const pz = s.z + dz;
-            const key = keyOf(px, pz);
-            if (painted.has(key)) continue;
-            painted.add(key);
-            (b.mode === "height" ? height : biome).push({ x: px, z: pz, value });
-            if (px < x0) x0 = px;
-            if (px > x1) x1 = px;
-            if (pz < z0) z0 = pz;
-            if (pz > z1) z1 = pz;
+      const here = screenToWorld(camera, mouse.px, mouse.py);
+      const stamps: { x: number; z: number }[] = [];
+      if (!lastStamp) {
+        stamps.push(here);
+      } else {
+        const dx = here.x - lastStamp.x;
+        const dz = here.z - lastStamp.z;
+        if (dx === 0 && dz === 0) {
+          if (!idempotent(cur.op)) stamps.push(here); // 止めて押し続けると、繰り返し効く
+        } else {
+          const n = Math.max(1, Math.ceil(Math.hypot(dx, dz) / Math.max(1, b.radius / 2)));
+          for (let i = 1; i <= n; i++) {
+            stamps.push({ x: Math.round(lastStamp.x + (dx * i) / n), z: Math.round(lastStamp.z + (dz * i) / n) });
           }
         }
       }
-      queue.length = 0;
-      if (height.length === 0 && biome.length === 0) return;
-      client.edit({ height, biome }, { x0, x1: x1 + 1, z0, z1: z1 + 1 }, strokeId);
+      if (stamps.length === 0) return;
+      lastStamp = here;
+
+      let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+      for (const s of stamps) {
+        if (s.x < x0) x0 = s.x;
+        if (s.x > x1) x1 = s.x;
+        if (s.z < z0) z0 = s.z;
+        if (s.z > z1) z1 = s.z;
+      }
+      const r = b.radius;
+      client.brush(
+        { op: cur.op, stamps, radius: r, amount: cur.amount, value: cur.value, filter: b.filter },
+        { x0: x0 - r, x1: x1 + r + 1, z0: z0 - r, z1: z1 + r + 1 },
+        strokeId,
+      );
     };
 
-    // 前の位置から今の位置まで、隙間なく円を並べる
-    const enqueueStroke = (x: number, z: number) => {
-      const b = brushRef.current;
-      if (last) {
-        const dx = x - last.x;
-        const dz = z - last.z;
-        const n = Math.max(1, Math.ceil(Math.hypot(dx, dz) / Math.max(1, b.radius / 2)));
-        for (let i = 1; i <= n; i++) {
-          queue.push({ x: Math.round(last.x + (dx * i) / n), z: Math.round(last.z + (dz * i) / n) });
-        }
-      } else {
-        queue.push({ x, z });
-      }
-      last = { x, z };
-      if (!flushScheduled) {
-        flushScheduled = true;
-        requestAnimationFrame(flushQueue);
-      }
+    const brushLoop = (now: number) => {
+      if (!painting) return;
+      rafBrush = requestAnimationFrame(brushLoop);
+      if (now - lastTick < TICK_MS || client.busy) return; // 前の編集が終わるまで待つ
+      lastTick = now;
+      tick();
     };
 
     // --- パン ---
@@ -193,26 +209,41 @@ export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: Re
         lastX = e.clientX;
         lastY = e.clientY;
         canvas.setPointerCapture(e.pointerId);
-      } else if (e.button === 0 && brushRef.current.mode !== "none") {
+        return;
+      }
+      if ((e.button === 0 || e.button === 2) && brushRef.current.kind !== "none") {
+        const op = resolveOp(brushRef.current, e.button, e.shiftKey);
+        if (!op) return;
         const { px, py } = toCanvas(e);
-        const { x, z } = screenToWorld(camera, px, py);
+        mouse = { px, py };
         painting = true;
-        erase = e.shiftKey;
-        last = null;
-        painted.clear();
+        cur = op;
+        lastStamp = null;
         strokeId = client.beginStroke();
         canvas.setPointerCapture(e.pointerId);
-        enqueueStroke(x, z);
+        tick();
+        lastTick = performance.now();
+        rafBrush = requestAnimationFrame(brushLoop);
       }
     };
+
+    const onPointerUp = () => {
+      const was = painting;
+      if (was) tick(); // 最後の位置まで当てる
+      dragging = false;
+      painting = false;
+      cur = null;
+      lastStamp = null;
+      cancelAnimationFrame(rafBrush);
+      if (was) client.refreshStale();
+    };
+
+    const onContextMenu = (e: Event) => e.preventDefault();
 
     const onPointerMove = (e: PointerEvent) => {
       const { px, py } = toCanvas(e);
       mouse = { px, py };
-      if (painting) {
-        const { x, z } = screenToWorld(camera, px, py);
-        enqueueStroke(x, z);
-      }
+
       if (dragging) {
         camera.camX += e.clientX - lastX;
         camera.camY += e.clientY - lastY;
@@ -220,16 +251,8 @@ export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: Re
         lastY = e.clientY;
         onCameraChanged();
       } else {
-        schedule(); // 円の位置を更新
+        schedule();
       }
-    };
-
-    const onPointerUp = () => {
-      const wasPainting = painting;
-      dragging = false;
-      painting = false;
-      last = null;
-      if (wasPainting) client.refreshStale(); // 見えていない段階のタイルを、作り直す
     };
 
     const onPointerLeave = () => {
@@ -237,24 +260,39 @@ export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: Re
       schedule();
     };
 
+    let wheelAcc = 0;
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const rectEl = canvas.getBoundingClientRect();
-      const px = e.clientX - rectEl.left;
-      const py = e.clientY - rectEl.top;
+      const { px, py } = toCanvas(e);
 
       if (e.ctrlKey) {
         const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
         const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, camera.zoom * factor));
         const ratio = next / camera.zoom;
-
         camera.camX = px + (camera.camX - px) * ratio;
         camera.camY = py + (camera.camY - py) * ratio;
         camera.zoom = next;
         onCameraChanged();
+        return;
       }
+
+      // ホイールでブラシの大きさ
+      const b = brushRef.current;
+      if (b.kind === "none") return;
+      wheelAcc += e.deltaY;
+      if (Math.abs(wheelAcc) < 40) return;
+      const dir = wheelAcc < 0 ? 1 : -1; // 上に回すと大きく
+      wheelAcc = 0;
+      const step = Math.max(1, Math.round(b.radius * 0.1)); // 大きいほど、刻みも大きく
+      const next = Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, b.radius + dir * step));
+      if (next === b.radius) return;
+      brushRef.current = { ...b, radius: next }; // 円をすぐ更新するため
+      onRadiusRef.current?.(next);
+      schedule();
     };
 
+    canvas.addEventListener("contextmenu", onContextMenu)
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointermove", onPointerMove);
     canvas.addEventListener("pointerup", onPointerUp);
@@ -281,6 +319,7 @@ export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: Re
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointerleave", onPointerLeave);
+      canvas.removeEventListener("contextmenu", onContextMenu);
       window.removeEventListener("keydown", onKeyDown);
       canvas.removeEventListener("wheel", onWheel);
 
@@ -293,6 +332,10 @@ export function TileCanvas({ renderSetting, brush, apiRef }: { renderSetting: Re
     clientRef.current?.setRender(renderSetting);
   }, [renderSetting]);
 
+  const onRadiusRef = useRef(onRadiusChange);
+  useEffect(() => {
+    onRadiusRef.current = onRadiusChange;
+  }, [onRadiusChange]);
 
   useEffect(() => {
     brushRef.current = brush;
